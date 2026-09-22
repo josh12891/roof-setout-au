@@ -117,7 +117,7 @@ Workflows live in [`codemagic.yaml`](codemagic.yaml). Full iOS walkthrough: **[d
 | --- | --- |
 | Bundle id | `com.josh12891.roofsetout` |
 | ASC integration | Reuse **`tradies-toolbox-asc`** (same Apple team; App Manager key can sign any app under the account). Only create **`au-roof-carpenter-asc`** if you need a dedicated key — then rename `integrations.app_store_connect` in the yaml. |
-| `APP_STORE_APPLE_ID` | Set after creating **AU Roof Carpenter** in App Store Connect → App Information |
+| `APP_STORE_APPLE_ID` | `6814817371` (**AU Roof Carpenter**, bundle `com.josh12891.roofsetout`) |
 | `PUBLISH_TESTFLIGHT` | Yaml default `true`; override as an Application variable to skip upload |
 | Secrets | Codemagic UI only — never commit `.p8` / `.p12` / passwords |
 
@@ -148,11 +148,11 @@ Gradle release signing reads Codemagic `CM_*` env vars when present, otherwise `
 - [ ] Upload keystore in password manager + Codemagic (`roof-setout-upload` or `CM_KEYSTORE` group) — **same** key for every update
 - [ ] Codemagic `android-play` produces a signed AAB that declares `com.android.vending.BILLING`
 - [ ] Create Play IAP `roof_setout_pro_unlock` at **AUD 39.99** (after first Billing AAB is uploaded)
-- [ ] App Store Connect app: display name **AU Roof Carpenter**, subtitle **Metric set-out — rafters, hips, creepers**, support australiancomsnetwork@gmail.com
+- [x] App Store Connect app: display name **AU Roof Carpenter**, subtitle **Metric set-out — rafters, hips, creepers**, support australiancomsnetwork@gmail.com (Apple ID `6814817371`, bundle `com.josh12891.roofsetout`)
 - [ ] StoreKit product `roof_setout_pro_unlock` at **$39.99 AUD** (non-consumable)
 - [ ] Paste privacy URL into both stores
 - [ ] Codemagic `ios-app-store` + reuse `tradies-toolbox-asc` → TestFlight IPA
-- [ ] Set `APP_STORE_APPLE_ID` once the ASC app record exists
+- [x] `APP_STORE_APPLE_ID` set to `6814817371`
 - [ ] Lauren (`lozzpearson@gmail.com`) on TestFlight for Pro screenshots (complimentary unlock — production stays freemium)
 - [ ] Generate final icon/splash (`npm run assets` once brand mark is final)
 

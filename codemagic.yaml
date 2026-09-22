@@ -19,7 +19,7 @@
 #     (CM_KEYSTORE_PATH / CM_KEYSTORE_PASSWORD / CM_KEY_ALIAS / CM_KEY_PASSWORD,
 #      or base64 CM_KEYSTORE + the same password vars — Josh supplies the existing
 #      Play upload keystore; do NOT generate a second one after Play accepts an AAB)
-#   APP_STORE_APPLE_ID           -> numeric Apple ID after ASC app exists
+#   APP_STORE_APPLE_ID           -> 6814817371 (AU Roof Carpenter ASC app)
 #   PUBLISH_TESTFLIGHT           -> yaml default "true"; override as Application variable
 
 workflows:
@@ -62,9 +62,9 @@ workflows:
         XCODE_WORKSPACE: App.xcworkspace
         XCODE_SCHEME: App
         # Numeric Apple ID: App Store Connect -> AU Roof Carpenter -> App Information.
-        # Leave empty until the ASC app record exists; then set here (Personal accounts)
-        # or as an Application / Team variable.
-        APP_STORE_APPLE_ID: ""
+        # ASC app exists (bundle com.josh12891.roofsetout). Override as Application /
+        # Team variable if needed on Personal accounts.
+        APP_STORE_APPLE_ID: "6814817371"
         # "true" = upload IPA to App Store Connect / TestFlight when ASC creds exist.
         # "false" = build the signed IPA only (artifact still downloadable).
         PUBLISH_TESTFLIGHT: "true"

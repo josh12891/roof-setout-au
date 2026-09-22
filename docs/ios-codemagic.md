@@ -10,7 +10,7 @@ Build a **signed App Store IPA** for AU Roof Carpenter on a cloud Mac, then opti
 | Display name | AU Roof Carpenter |
 | IAP product | `roof_setout_pro_unlock` ($39.99 AUD — StoreKit, not the CI file) |
 | ASC integration | Reuse **`tradies-toolbox-asc`** (same Apple team) |
-| App Store Apple ID | Set after creating the ASC app record (`APP_STORE_APPLE_ID`) |
+| App Store Apple ID | `6814817371` (`APP_STORE_APPLE_ID` — ASC app `com.josh12891.roofsetout`) |
 | Secrets | Codemagic UI only. Never commit `.p8`, `.p12`, or passwords. |
 
 ## Cost
@@ -56,10 +56,10 @@ To create a new key if needed:
 | `APP_STORE_CONNECT_ISSUER_ID` | yes | Issuer ID |
 | `APP_STORE_CONNECT_KEY_IDENTIFIER` | yes | Key ID |
 | `APP_STORE_CONNECT_PRIVATE_KEY` | yes | Full `.p8` text |
-| `APP_STORE_APPLE_ID` | no | Numeric Apple ID from the app record → **App Information** (set after creating AU Roof Carpenter) |
+| `APP_STORE_APPLE_ID` | no | `6814817371` — numeric Apple ID from App Store Connect → **AU Roof Carpenter** → **App Information** |
 | `PUBLISH_TESTFLIGHT` | no | Application variable (optional). Yaml default is `true`. Set `false` in the Codemagic UI to skip upload |
 
-Personal Codemagic accounts may not have Application variable groups. In that case set `APP_STORE_APPLE_ID` in [`codemagic.yaml`](../codemagic.yaml) once the ASC app exists. Keep `.p8` / `.p12` / passwords in the Codemagic UI — never commit them.
+Personal Codemagic accounts may not have Application variable groups. In that case keep `APP_STORE_APPLE_ID` in [`codemagic.yaml`](../codemagic.yaml) (already set to `6814817371`). Keep `.p8` / `.p12` / passwords in the Codemagic UI — never commit them.
 
 ## 4. Code signing (one of these)
 
@@ -113,12 +113,12 @@ Keep `publishing.app_store_connect` commented. The script publisher already uplo
 
 ## 7. App Store Connect app record
 
-Create **AU Roof Carpenter** (`com.josh12891.roofsetout`) in App Store Connect before the first upload. Subtitle lean: **Metric set-out — rafters, hips, creepers**. Seller **Australian Dynamics**. Support **australiancomsnetwork@gmail.com**. Privacy URL: `https://josh12891.github.io/roof-setout-au/privacy.html`. IAP `roof_setout_pro_unlock` at **$39.99 AUD** is created in the app record (see README); CI does not create the product. After the app exists, set `APP_STORE_APPLE_ID` in the yaml or as an Application variable.
+**AU Roof Carpenter** (`com.josh12891.roofsetout`, Apple ID **`6814817371`**) already exists in App Store Connect. Subtitle lean: **Metric set-out — rafters, hips, creepers**. Seller **Australian Dynamics**. Support **australiancomsnetwork@gmail.com**. Privacy URL: `https://josh12891.github.io/roof-setout-au/privacy.html`. IAP `roof_setout_pro_unlock` at **$39.99 AUD** is created in the app record (see README); CI does not create the product. `APP_STORE_APPLE_ID` is set to `6814817371` in [`codemagic.yaml`](../codemagic.yaml) (or override as an Application variable).
 
 ## Checklist
 
 - [ ] Codemagic free account, GitHub repo `josh12891/roof-setout-au` connected, yaml scanned
-- [ ] `APP_STORE_APPLE_ID` set once the ASC app record exists
+- [x] `APP_STORE_APPLE_ID` set to `6814817371` (ASC app exists)
 - [ ] Developer Portal key **`tradies-toolbox-asc`** reused (or dedicated `au-roof-carpenter-asc` + yaml rename)
 - [ ] ASC API key stored in Codemagic + password manager (never git)
 - [ ] Distribution cert + App Store profile for `com.josh12891.roofsetout` in Code signing identities
