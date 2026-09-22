@@ -1,0 +1,143 @@
+@import "@fontsource/barlow/400.css";
+@import "@fontsource/barlow/500.css";
+@import "@fontsource/barlow/600.css";
+@import "@fontsource/barlow/700.css";
+@import "@fontsource/barlow-condensed/600.css";
+@import "@fontsource/barlow-condensed/700.css";
+@import "@fontsource/barlow-condensed/800.css";
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #d9e2e8;
+  --color-surface: #f4f7f9;
+  --color-surface-2: #e8eef2;
+  --color-ink: #152028;
+  --color-muted: #5a6874;
+  --color-subtle: #7a8792;
+  --color-border: #c5d0d8;
+  --color-primary: #1e3a4c;
+  --color-primary-fg: #f4f7f9;
+  --color-line: #152028;
+  --color-ok: #2f6b45;
+  --color-ok-fg: #f4faf6;
+  --color-warn: #8a5a22;
+  --color-warn-fg: #fdf6ec;
+  --color-danger: #8b2e2e;
+  --color-danger-fg: #fdf4f4;
+  --color-ring: #1e3a4c;
+  --color-dim: #b8c4cc;
+
+  --font-sans: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-mono: "Barlow", ui-monospace, monospace;
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
+
+  --shadow-sheet:
+    0 0 0 1px color-mix(in oklab, var(--color-ink) 8%, transparent),
+    0 1px 2px color-mix(in oklab, var(--color-ink) 6%, transparent),
+    0 8px 20px -12px color-mix(in oklab, var(--color-ink) 18%, transparent);
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 2rem;
+  --text-3xl: 2.75rem;
+
+  --leading-tight: 1.1;
+  --leading-snug: 1.25;
+  --leading-normal: 1.5;
+
+  --tracking-tight: -0.02em;
+  --tracking-display: 0.04em;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--color-bg);
+    color: var(--color-ink);
+  }
+
+  body {
+    min-height: 100dvh;
+    font-family: var(--font-sans);
+    background:
+      radial-gradient(
+        1100px 520px at 100% -5%,
+        color-mix(in oklab, var(--color-primary) 10%, transparent),
+        transparent 55%
+      ),
+      linear-gradient(
+        165deg,
+        color-mix(in oklab, #9eb6c4 35%, var(--color-bg)) 0%,
+        var(--color-bg) 42%,
+        color-mix(in oklab, #c5d5c8 22%, var(--color-bg)) 100%
+      );
+    color: var(--color-ink);
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    font-family: var(--font-display);
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
