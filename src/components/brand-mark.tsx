@@ -85,7 +85,7 @@ export function CreeperIcon({ className }: { className?: string }) {
   );
 }
 
-export function SkillionIcon({ className }: { className?: string }) {
+export function GableIcon({ className }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -97,10 +97,28 @@ export function SkillionIcon({ className }: { className?: string }) {
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <path d="M3 18 L21 8" />
-      <path d="M3 18 V14 H6" />
-      <path d="M21 8 V14" />
+      <path d="M3 18 L12 6 L21 18" />
+      <path d="M12 6 V18" />
       <path d="M3 18 H21" />
+    </svg>
+  );
+}
+
+export function JunctionIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M4 6 H14 V18 H4 Z" />
+      <path d="M14 10 H20 V18 H14" />
+      <path d="M14 10 L17 14" />
     </svg>
   );
 }

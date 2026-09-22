@@ -1,56 +1,41 @@
 import { describe, expect, it } from "vitest";
 import { calculateJunction } from "./junction";
 
-describe("junction", () => {
-  it("equal-hip bisects a 90° corner", () => {
+describe("L/T junction", () => {
+  it("equal-hip bisects a 90° L corner", () => {
     const result = calculateJunction({
       kind: "equal-hip",
+      planShape: "L",
       mainPitch: { kind: "degrees", degrees: 22.5 },
       mainRunMm: 4500,
       planCornerDegrees: 90,
     });
+    expect(result.planShape).toBe("L");
     expect(result.bisectPlanDegrees).toBe(45);
     expect(result.secondaryPitchDegrees).toBeCloseTo(22.5, 6);
     expect(result.planRunMm).toBeCloseTo(4500 * Math.SQRT2, 5);
     expect(result.junctionPitchDegrees).toBeLessThan(22.5);
     expect(result.slopeLengthFactor).toBeGreaterThan(1);
-    expect(result.notes.length).toBeGreaterThan(0);
+    expect(result.notes.some((n) => /L-junction/i.test(n))).toBe(true);
   });
 
-  it("equal-valley mirrors equal-hip geometry", () => {
-    const hip = calculateJunction({
-      kind: "equal-hip",
-      mainPitch: { kind: "degrees", degrees: 30 },
-      mainRunMm: 3000,
-      planCornerDegrees: 90,
-    });
-    const valley = calculateJunction({
-      kind: "equal-valley",
-      mainPitch: { kind: "degrees", degrees: 30 },
-      mainRunMm: 3000,
-      planCornerDegrees: 90,
-    });
-    expect(valley.kind).toBe("equal-valley");
-    expect(valley.planRunMm).toBeCloseTo(hip.planRunMm, 8);
-    expect(valley.junctionPitchDegrees).toBeCloseTo(hip.junctionPitchDegrees, 8);
-  });
-
-  it("skillion-to-pitch reports both pitches", () => {
+  it("equal-valley on a T plan tags the plan shape", () => {
     const result = calculateJunction({
-      kind: "skillion-to-pitch",
-      mainPitch: { kind: "degrees", degrees: 10 },
-      secondaryPitch: { kind: "degrees", degrees: 25 },
-      mainRunMm: 4000,
+      kind: "equal-valley",
+      planShape: "T",
+      mainPitch: { kind: "degrees", degrees: 30 },
+      mainRunMm: 3000,
       planCornerDegrees: 90,
     });
-    expect(result.mainPitchDegrees).toBeCloseTo(10, 6);
-    expect(result.secondaryPitchDegrees).toBeCloseTo(25, 6);
-    expect(result.junctionPitchDegrees).toBeGreaterThan(0);
+    expect(result.kind).toBe("equal-valley");
+    expect(result.planShape).toBe("T");
+    expect(result.notes.some((n) => /T-junction/i.test(n))).toBe(true);
   });
 
   it("unequal-pitch shifts the plan angle off 45°", () => {
     const result = calculateJunction({
       kind: "unequal-pitch",
+      planShape: "L",
       mainPitch: { kind: "degrees", degrees: 22.5 },
       secondaryPitch: { kind: "degrees", degrees: 35 },
       mainRunMm: 4500,
@@ -60,5 +45,10 @@ describe("junction", () => {
     expect(result.bisectPlanDegrees).not.toBeCloseTo(45, 0);
     expect(result.secondaryPitchDegrees).toBeCloseTo(35, 6);
     expect(result.planRunMm).toBeGreaterThan(4500);
+  });
+
+  it("does not expose skillion junction kinds", () => {
+    const kinds = ["equal-hip", "equal-valley", "unequal-pitch"] as const;
+    expect(kinds).not.toContain("skillion-to-pitch");
   });
 });

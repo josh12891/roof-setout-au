@@ -36,17 +36,21 @@ function memoryStorage(initial: Record<string, string> = {}): UnlockStorage {
 }
 
 describe("unlock gate", () => {
-  it("keeps common rafter free forever", () => {
-    const consumed = { hip: 1, creeper: 1, skillion: 1 };
-    expect(FREE_TOOL_IDS).toEqual(["common"]);
+  it("keeps gable ends and common rafter (birdsmouth) free forever", () => {
+    const consumed = { hip: 1, creeper: 1, junction: 1 };
+    expect(FREE_TOOL_IDS).toEqual(["gable", "common"]);
+    expect(toolRequiresUnlock("gable")).toBe(false);
     expect(toolRequiresUnlock("common")).toBe(false);
+    expect(canUseTool("gable", false)).toBe(true);
     expect(canUseTool("common", false)).toBe(true);
+    expect(canUseTool("gable", false, consumed)).toBe(true);
     expect(canUseTool("common", false, consumed)).toBe(true);
+    expect(paidToolHomeLabel("gable", false, consumed)).toBeNull();
     expect(paidToolHomeLabel("common", false, consumed)).toBeNull();
   });
 
-  it("gates hip, creeper and skillion as Pro tools with one free calc each", () => {
-    expect(PAID_TOOL_IDS).toEqual(["hip", "creeper", "skillion"]);
+  it("gates hip, creeper and L/T junctions as Pro tools with one free calc each", () => {
+    expect(PAID_TOOL_IDS).toEqual(["hip", "creeper", "junction"]);
     expect(FREE_USES_PER_PAID_TOOL).toBe(1);
     expect(UNLOCK_PRODUCT_ID).toBe("roof_setout_pro_unlock");
     expect(UNLOCK_PRICE_AUD).toBe(39.99);
@@ -60,8 +64,13 @@ describe("unlock gate", () => {
     }
   });
 
+  it("does not include skillion in this build's tool ids", () => {
+    expect(FREE_TOOL_IDS).not.toContain("skillion");
+    expect(PAID_TOOL_IDS).not.toContain("skillion");
+  });
+
   it("gates a paid tool after its own free use is consumed", () => {
-    const hipUsed = { hip: 1, creeper: 0, skillion: 0 };
+    const hipUsed = { hip: 1, creeper: 0, junction: 0 };
     expect(canUseTool("hip", false, hipUsed)).toBe(false);
     expect(canUseTool("creeper", false, hipUsed)).toBe(true);
     expect(freeUsesRemaining("hip", hipUsed)).toBe(0);
@@ -70,10 +79,10 @@ describe("unlock gate", () => {
   });
 
   it("lets the one-time Pro unlock clear the gate for all paid tools", () => {
-    const allUsed = { hip: 1, creeper: 1, skillion: 1 };
+    const allUsed = { hip: 1, creeper: 1, junction: 1 };
     expect(canUseTool("hip", true, allUsed)).toBe(true);
     expect(canUseTool("creeper", true, allUsed)).toBe(true);
-    expect(canUseTool("skillion", true, allUsed)).toBe(true);
+    expect(canUseTool("junction", true, allUsed)).toBe(true);
     expect(paidToolHomeLabel("hip", true, allUsed)).toBeNull();
   });
 
@@ -89,25 +98,25 @@ describe("unlock gate", () => {
 
   it("persists per-tool free-use counts independently", () => {
     const storage = memoryStorage();
-    expect(readFreeUsesConsumed(storage)).toEqual({ hip: 0, creeper: 0, skillion: 0 });
+    expect(readFreeUsesConsumed(storage)).toEqual({ hip: 0, creeper: 0, junction: 0 });
 
     expect(consumeFreeUse("hip", storage)).toBe(true);
     expect(storage.getItem(FREE_USES_STORAGE_KEY)).toBe(
-      JSON.stringify({ hip: 1, creeper: 0, skillion: 0 }),
+      JSON.stringify({ hip: 1, creeper: 0, junction: 0 }),
     );
     expect(canUseTool("hip", false, readFreeUsesConsumed(storage))).toBe(false);
     expect(canUseTool("creeper", false, readFreeUsesConsumed(storage))).toBe(true);
 
     expect(consumeFreeUse("hip", storage)).toBe(false);
-    expect(consumeFreeUse("skillion", storage)).toBe(true);
-    expect(readFreeUsesConsumed(storage)).toEqual({ hip: 1, creeper: 0, skillion: 1 });
+    expect(consumeFreeUse("junction", storage)).toBe(true);
+    expect(readFreeUsesConsumed(storage)).toEqual({ hip: 1, creeper: 0, junction: 1 });
   });
 
   it("treats invalid stored free-use JSON as unused", () => {
     const storage = memoryStorage({ [FREE_USES_STORAGE_KEY]: "not-json" });
-    expect(readFreeUsesConsumed(storage)).toEqual({ hip: 0, creeper: 0, skillion: 0 });
-    writeFreeUsesConsumed({ hip: 9, creeper: -2, skillion: 1 }, storage);
-    expect(readFreeUsesConsumed(storage)).toEqual({ hip: 1, creeper: 0, skillion: 1 });
+    expect(readFreeUsesConsumed(storage)).toEqual({ hip: 0, creeper: 0, junction: 0 });
+    writeFreeUsesConsumed({ hip: 9, creeper: -2, junction: 1 }, storage);
+    expect(readFreeUsesConsumed(storage)).toEqual({ hip: 1, creeper: 0, junction: 1 });
   });
 
   it("restores from the local flag for the web/debug stub", () => {

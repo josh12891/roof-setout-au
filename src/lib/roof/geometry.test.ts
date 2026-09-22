@@ -3,8 +3,8 @@ import {
   birdsmouthFromSeat,
   calculateCommonRafter,
   calculateCreepers,
+  calculateGableEnds,
   calculateHipValley,
-  calculateSkillion,
   pitchFromInput,
   risePer300FromPitch,
   roundMm,
@@ -140,19 +140,19 @@ describe("creepers", () => {
   });
 });
 
-describe("skillion", () => {
-  it("adds both overhangs into total length", () => {
-    const result = calculateSkillion({
-      runMm: 3600,
-      pitch: { kind: "degrees", degrees: 15 },
-      overhangLowMm: 450,
-      overhangHighMm: 150,
-      plateStepMm: 0,
-      birdsmouth: { seatMm: 70, rafterDepthMm: 140 },
+describe("gable ends", () => {
+  it("returns rise, ridge and barge lengths for a rectangular gable", () => {
+    const result = calculateGableEnds({
+      spanMm: 9000,
+      lengthMm: 12000,
+      pitch: { kind: "degrees", degrees: 22.5 },
+      bargeOverhangMm: 450,
     });
-    const cos = Math.cos((15 * Math.PI) / 180);
-    expect(result.slopeLengthMm).toBeCloseTo(3600 / cos, 5);
-    expect(result.totalLengthMm).toBeCloseTo(4200 / cos, 5);
-    expect(result.highEndHeightMm).toBeGreaterThan(result.lowEndHeightMm);
+    const cos = Math.cos((22.5 * Math.PI) / 180);
+    expect(result.runMm).toBe(4500);
+    expect(result.ridgeLengthMm).toBe(12000);
+    expect(result.commonSlopeMm).toBeCloseTo(4500 / cos, 5);
+    expect(result.bargeLengthMm).toBeCloseTo(4950 / cos, 5);
+    expect(result.plumbCutDegrees).toBeCloseTo(22.5, 6);
   });
 });

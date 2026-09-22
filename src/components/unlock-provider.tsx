@@ -54,18 +54,18 @@ function getUnlockServerSnapshot() {
 }
 
 function snapshotFreeUses(counts: FreeUseCounts): string {
-  return `${counts.hip}:${counts.creeper}:${counts.skillion}`;
+  return `${counts.hip}:${counts.creeper}:${counts.junction}`;
 }
 
 function parseFreeUsesSnapshot(raw: string): FreeUseCounts {
-  const [hipRaw, creeperRaw, skillionRaw] = raw.split(":");
+  const [hipRaw, creeperRaw, junctionRaw] = raw.split(":");
   const hip = Number(hipRaw);
   const creeper = Number(creeperRaw);
-  const skillion = Number(skillionRaw);
+  const junction = Number(junctionRaw);
   return {
     hip: Number.isFinite(hip) ? hip : 0,
     creeper: Number.isFinite(creeper) ? creeper : 0,
-    skillion: Number.isFinite(skillion) ? skillion : 0,
+    junction: Number.isFinite(junction) ? junction : 0,
   };
 }
 

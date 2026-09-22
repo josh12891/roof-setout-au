@@ -6,11 +6,11 @@ import type {
   CreeperInput,
   CreeperMember,
   CreeperResult,
+  GableEndsInput,
+  GableEndsResult,
   HipValleyInput,
   HipValleyResult,
   PitchInput,
-  SkillionInput,
-  SkillionResult,
 } from "./types";
 
 const DEG = Math.PI / 180;
@@ -178,30 +178,31 @@ export function calculateCreepers(input: CreeperInput): CreeperResult {
   };
 }
 
-/** Single-pitch skillion / lean-to rafter between low and high ends. */
-export function calculateSkillion(input: SkillionInput): SkillionResult {
+/**
+ * Rectangular gable ends — rise, ridge and barge/rake lengths.
+ * Free forever with common rafter / birdsmouth in this build.
+ */
+export function calculateGableEnds(input: GableEndsInput): GableEndsResult {
   const { radians, degrees } = pitchFromInput(input.pitch);
-  const runMm = clampPositive(input.runMm);
-  const overhangLowMm = clampPositive(input.overhangLowMm);
-  const overhangHighMm = clampPositive(input.overhangHighMm);
-  const plateStepMm = clampPositive(input.plateStepMm);
-  const riseMm = runMm * Math.tan(radians) + plateStepMm;
+  const spanMm = clampPositive(input.spanMm);
+  const lengthMm = clampPositive(input.lengthMm);
+  const bargeOverhangMm = clampPositive(input.bargeOverhangMm);
+  const runMm = spanMm / 2;
+  const riseMm = runMm * Math.tan(radians);
   const cos = Math.cos(radians);
-  const slopeLengthMm = cos === 0 ? 0 : runMm / cos;
-  const totalLengthMm =
-    cos === 0 ? 0 : (runMm + overhangLowMm + overhangHighMm) / cos;
-  const birdsmouth = birdsmouthFromSeat(radians, input.birdsmouth);
+  const commonSlopeMm = cos === 0 ? 0 : runMm / cos;
+  const bargeLengthMm = cos === 0 ? 0 : (runMm + bargeOverhangMm) / cos;
 
   return {
     pitchDegrees: degrees,
+    runMm,
     riseMm,
-    slopeLengthMm,
-    totalLengthMm,
-    lowEndHeightMm: birdsmouth.heelMm,
-    highEndHeightMm: riseMm + birdsmouth.heelMm,
+    commonSlopeMm,
+    ridgeLengthMm: lengthMm,
+    bargeLengthMm,
     plumbCutDegrees: degrees,
     levelCutDegrees: Math.max(0, 90 - degrees),
-    birdsmouth,
+    risePer300: risePer300FromPitch(radians),
   };
 }
 

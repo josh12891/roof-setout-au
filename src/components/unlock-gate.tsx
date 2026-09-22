@@ -14,8 +14,8 @@ export function UnlockCta({
   const { purchaseUnlock, restorePurchases, priceLabel, busy, footnote } = useUnlock();
   const [status, setStatus] = useState<string | null>(null);
   const winLine = toolLabel
-    ? `That's your free ${toolLabel}. Unlock Pro once for hip/valley, creepers and skillion.`
-    : "That's your free calculation. Unlock Pro once for hip/valley, creepers and skillion.";
+    ? `That's your free ${toolLabel}. Unlock Pro once for hip/valley, creepers and L/T junctions.`
+    : "That's your free calculation. Unlock Pro once for hip/valley, creepers and L/T junctions.";
 
   return (
     <Card>
@@ -24,16 +24,16 @@ export function UnlockCta({
         <CardDescription>
           {afterWin
             ? winLine
-            : `One-time ${priceLabel}. Unlocks hip/valley, creepers and skillion forever.`}
+            : `One-time ${priceLabel}. Unlocks hip/valley, creepers and L/T junctions forever.`}
         </CardDescription>
       </CardHeader>
       <ul className="mb-5 flex flex-col gap-1.5 text-sm text-ink">
         <li>— Hip and valley lengths, backing and side cuts</li>
         <li>— Creeper (jack) reductions and plate marks</li>
-        <li>— Skillion / lean-to and advanced junctions</li>
+        <li>— L / T plan junctions (equal or unequal pitch)</li>
       </ul>
       <p className="mb-5 text-sm text-muted">
-        Common rafter, pitch and birdsmouth stay free on this device.
+        Gable ends, common rafter and birdsmouth stay free on this device.
       </p>
       <div className="flex flex-col gap-2">
         <Button

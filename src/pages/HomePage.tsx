@@ -4,8 +4,9 @@ import {
   BrandMark,
   CommonRafterIcon,
   CreeperIcon,
+  GableIcon,
   HipIcon,
-  SkillionIcon,
+  JunctionIcon,
 } from "@/components/brand-mark";
 import { Badge } from "@/components/ui/badge";
 import { useUnlock } from "@/components/unlock-provider";
@@ -13,6 +14,13 @@ import { paidToolHomeLabel, type ToolId } from "@/lib/unlock";
 import { cn } from "@/lib/utils";
 
 const TOOLS = [
+  {
+    id: "gable" as const satisfies ToolId,
+    to: "/gable" as const,
+    title: "Gable ends",
+    copy: "Rise, ridge and barge on a rectangular gable. Free forever.",
+    icon: GableIcon,
+  },
   {
     id: "common" as const satisfies ToolId,
     to: "/common" as const,
@@ -35,11 +43,11 @@ const TOOLS = [
     icon: CreeperIcon,
   },
   {
-    id: "skillion" as const satisfies ToolId,
-    to: "/skillion" as const,
-    title: "Skillion / junctions",
-    copy: "Lean-to rafters and advanced junctions (unequal pitch, skillion into pitch).",
-    icon: SkillionIcon,
+    id: "junction" as const satisfies ToolId,
+    to: "/junction" as const,
+    title: "L / T junctions",
+    copy: "Plan hips and valleys where an L or T wing joins the main roof.",
+    icon: JunctionIcon,
   },
 ];
 
@@ -59,17 +67,18 @@ export function HomePage() {
           Roof Setout AU
         </h1>
         <p className="mt-3 max-w-md text-base leading-normal text-muted animate-[fade-up_0.55s_var(--ease-out)_0.1s_both]">
-          Common rafters, hips, creepers and skillions — metric set-out for the tape, offline on site.
+          Gable ends, common rafters and birdsmouth free — hips, creepers and L/T junctions with Pro.
         </p>
         <p className="mt-2 max-w-md text-sm leading-normal text-subtle">
-          Common rafter / pitch / birdsmouth stay free. Hip, creeper and skillion each include one free
-          calculation; unlock Pro forever for $39.99 AUD.
+          Free forever: gable ends, common rafter, birdsmouth. Pro unlock ($39.99 AUD, one-time) covers
+          hip/valley, creeper setout and L/T junctions — each with one free calculation first.
         </p>
       </header>
 
       <nav aria-label="Tools" className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {TOOLS.map((tool, index) => {
           const badge = paidToolHomeLabel(tool.id, unlocked, freeUsesConsumed);
+          const isFree = tool.id === "gable" || tool.id === "common";
           return (
             <Link
               key={tool.to}
@@ -93,7 +102,7 @@ export function HomePage() {
                       <Lock className="size-3" /> Pro
                     </Badge>
                   ) : null}
-                  {tool.id === "common" ? <Badge variant="ok">Free</Badge> : null}
+                  {isFree ? <Badge variant="ok">Free</Badge> : null}
                 </div>
                 <p className="mt-1 text-sm leading-snug text-muted">{tool.copy}</p>
               </div>

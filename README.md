@@ -1,6 +1,6 @@
 # Roof Setout AU
 
-Working title (**name TBD** — keep `com.josh12891.roofsetout` and rename display strings later). Offline roof set-out for Australian carpenters: **common rafter / pitch / birdsmouth**, **hip & valley**, **creepers**, and **skillion / junctions**.
+Working title (**name TBD** — keep `com.josh12891.roofsetout` and rename display strings later). Offline roof set-out for Australian carpenters: **gable ends**, **common rafter / birdsmouth**, **hip & valley**, **creepers**, and **L/T junctions**.
 
 This is a **Capacitor + Vite + React + TypeScript SPA**. Web assets bundle into the native shells so every tool works **offline**. No login, no cloud database, no ads.
 
@@ -19,19 +19,22 @@ Public surfaces use **Australian Dynamics** and **australiancomsnetwork@gmail.co
 
 ## Tools
 
-1. **Common rafter** (free) — span, pitch (degrees or rise:run), overhang, birdsmouth seat / heel / remaining depth, plumb & level cuts.
-2. **Hip / valley** (Pro) — equal-pitch plan run, hip pitch, slope length, backing and side cuts.
-3. **Creepers** (Pro) — plate marks, remaining run, slope lengths and overhang totals per jack.
-4. **Skillion / junctions** (Pro) — lean-to lengths plus equal hip/valley, skillion-into-pitch and unequal-pitch junction geometry.
+1. **Gable ends** (free) — rise, ridge length, barge/rake on a rectangular gable.
+2. **Common rafter** (free) — span, pitch (degrees or rise:run), overhang, birdsmouth seat / heel / remaining depth, plumb & level cuts.
+3. **Hip / valley** (Pro) — equal-pitch plan run, hip pitch, slope length, backing and side cuts.
+4. **Creepers** (Pro) — plate marks, remaining run, slope lengths and overhang totals per jack.
+5. **L / T junctions** (Pro) — equal hip/valley or unequal-pitch joins on an L or T plan.
+
+Skillion is **not** in this build (not claimed, not gated).
 
 Product maths live in `src/lib/roof` (geometry, junction, types, tests). UI in `src/components/roof`.
 
-## Pricing
+## Pricing (team freemium lock)
 
 | | |
 | --- | --- |
-| Free forever | Common rafter / pitch / birdsmouth |
-| One free calculation each | Hip/valley, creepers, skillion/junctions |
+| Free forever | Gable ends, common rafter, birdsmouth |
+| One free calculation each | Hip/valley, creeper setout, L/T junctions |
 | Paid unlock | Same **$39.99 AUD** one-time purchase unlocks all Pro tools |
 | Product id | `roof_setout_pro_unlock` (non-consumable / managed product) |
 
@@ -103,7 +106,7 @@ Source: `public/privacy.html` (copied to `docs/privacy.html` on `npm test` / `np
 
 ## Prototype note
 
-The Grok web prototype (`roofing-grok-build/`) was intended as `uploads/*.tgz`. That archive was not present in the agent workspace, so geometry was implemented fresh under `src/lib/roof` to match the freemium product scope (common / hip / creeper / skillion + junctions). Drop the tarball into `uploads/` later if you want a diff against the original Grok sources.
+The Grok web prototype (`roofing-grok-build/`) was intended as `uploads/*.tgz`. That archive was not present in the agent workspace, so geometry was implemented fresh under `src/lib/roof` to match the freemium product scope (gable / common / hip / creeper / L-T junctions). Drop the tarball into `uploads/` later if you want a diff against the original Grok sources.
 
 ## Pattern
 

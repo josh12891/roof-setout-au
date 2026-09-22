@@ -17,10 +17,16 @@ export const UNLOCK_PRODUCT_TYPE = "inapp";
 export const PUBLIC_PRIVACY_URL =
   "https://josh12891.github.io/roof-setout-au/privacy.html";
 
-export type ToolId = "common" | "hip" | "creeper" | "skillion";
+/**
+ * Team freemium lock (this build):
+ * Free forever — gable ends, common rafter, birdsmouth.
+ * Pro — hip/valley, creeper setout, L/T junctions.
+ * Skillion is not in this build (do not claim or gate it).
+ */
+export type ToolId = "gable" | "common" | "hip" | "creeper" | "junction";
 
-export const FREE_TOOL_IDS = ["common"] as const satisfies readonly ToolId[];
-export const PAID_TOOL_IDS = ["hip", "creeper", "skillion"] as const satisfies readonly ToolId[];
+export const FREE_TOOL_IDS = ["gable", "common"] as const satisfies readonly ToolId[];
+export const PAID_TOOL_IDS = ["hip", "creeper", "junction"] as const satisfies readonly ToolId[];
 
 export type PaidToolId = (typeof PAID_TOOL_IDS)[number];
 
@@ -43,7 +49,7 @@ export function toolRequiresUnlock(id: ToolId): boolean {
 }
 
 export function emptyFreeUseCounts(): FreeUseCounts {
-  return { hip: 0, creeper: 0, skillion: 0 };
+  return { hip: 0, creeper: 0, junction: 0 };
 }
 
 export function freeUsesRemaining(id: PaidToolId, consumed: FreeUseCounts): number {
@@ -56,8 +62,8 @@ export function hasFreeUseRemaining(id: PaidToolId, consumed: FreeUseCounts): bo
 
 /**
  * Whether this tool may run a calculation now.
- * Common rafter / pitch / birdsmouth stay free. Hip, creeper and skillion
- * each get one free real calculation; after that they need the one-time Pro unlock.
+ * Gable ends + common rafter (incl. birdsmouth) stay free. Hip, creeper and
+ * L/T junctions each get one free real calculation; after that they need Pro.
  */
 export function canUseTool(
   id: ToolId,
@@ -120,7 +126,7 @@ export function readFreeUsesConsumed(
     return {
       hip: clampConsumed(parsed.hip),
       creeper: clampConsumed(parsed.creeper),
-      skillion: clampConsumed(parsed.skillion),
+      junction: clampConsumed(parsed.junction),
     };
   } catch {
     return empty;
@@ -138,7 +144,7 @@ export function writeFreeUsesConsumed(
       JSON.stringify({
         hip: clampConsumed(counts.hip),
         creeper: clampConsumed(counts.creeper),
-        skillion: clampConsumed(counts.skillion),
+        junction: clampConsumed(counts.junction),
       }),
     );
   } catch {

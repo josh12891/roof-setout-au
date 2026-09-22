@@ -21,8 +21,9 @@ export function AboutPage() {
         </CardHeader>
         <div className="space-y-3 text-sm text-muted">
           <p>
-            Metric common rafter, hip/valley, creeper and skillion calculators. No login, no cloud
-            database, no ads. Calculations stay on this device.
+            Metric gable ends, common rafter (with birdsmouth), hip/valley, creeper and L/T
+            junction calculators. No login, no cloud database, no ads. Calculations stay on this
+            device.
           </p>
           <p>
             Bundle id <code className="text-ink">com.josh12891.roofsetout</code>. Pro unlock product{" "}
@@ -44,7 +45,7 @@ export function AboutPage() {
             <CardDescription>
               {complimentaryUnlock
                 ? TESTFLIGHT_SCREENSHOT_NOTE
-                : "Hip, creeper and skillion are available offline on this device."}
+                : "Hip, creeper and L/T junctions are available offline on this device."}
             </CardDescription>
           </CardHeader>
         </Card>

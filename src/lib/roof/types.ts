@@ -108,37 +108,40 @@ export type CreeperResult = {
   count: number;
 };
 
-export type SkillionInput = {
-  /** Horizontal run wall to wall (or wall to ridge), mm. */
-  runMm: number;
+/** Rectangular gable roof end set-out (free). */
+export type GableEndsInput = {
+  /** Wall-plate to wall-plate span, mm. */
+  spanMm: number;
+  /** Building length along the ridge (plate length), mm. */
+  lengthMm: number;
   pitch: PitchInput;
-  overhangLowMm: number;
-  overhangHighMm: number;
-  birdsmouth: BirdsmouthInput;
-  /** Optional higher plate / bulkhead rise difference, mm. */
-  plateStepMm: number;
+  /** Horizontal barge / rake overhang past the gable end, mm. */
+  bargeOverhangMm: number;
 };
 
-export type SkillionResult = {
+export type GableEndsResult = {
   pitchDegrees: number;
+  runMm: number;
   riseMm: number;
-  slopeLengthMm: number;
-  totalLengthMm: number;
-  lowEndHeightMm: number;
-  highEndHeightMm: number;
+  /** Common rafter slope to ridge (no overhang). */
+  commonSlopeMm: number;
+  /** Ridge board length ≈ building length. */
+  ridgeLengthMm: number;
+  /** Barge / rake length including overhang. */
+  bargeLengthMm: number;
   plumbCutDegrees: number;
   levelCutDegrees: number;
-  birdsmouth: BirdsmouthResult;
+  risePer300: number;
 };
 
-export type JunctionKind =
-  | "equal-hip"
-  | "equal-valley"
-  | "skillion-to-pitch"
-  | "unequal-pitch";
+/** L or T plan junction (Pro) — equal or unequal pitch at the join. */
+export type JunctionKind = "equal-hip" | "equal-valley" | "unequal-pitch";
+
+export type LtPlanShape = "L" | "T";
 
 export type JunctionInput = {
   kind: JunctionKind;
+  planShape: LtPlanShape;
   mainPitch: PitchInput;
   secondaryPitch?: PitchInput;
   mainRunMm: number;
@@ -148,6 +151,7 @@ export type JunctionInput = {
 
 export type JunctionResult = {
   kind: JunctionKind;
+  planShape: LtPlanShape;
   mainPitchDegrees: number;
   secondaryPitchDegrees: number | null;
   bisectPlanDegrees: number;
