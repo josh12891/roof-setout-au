@@ -64,10 +64,10 @@ export function HomePage() {
           </p>
         </div>
         <h1 className="font-display text-4xl font-semibold leading-tight tracking-tight text-ink animate-[fade-up_0.55s_var(--ease-out)_0.05s_both] sm:text-5xl">
-          Roof Setout AU
+          AU Roof Carpenter
         </h1>
         <p className="mt-3 max-w-md text-base leading-normal text-muted animate-[fade-up_0.55s_var(--ease-out)_0.1s_both]">
-          Gable ends, common rafters and birdsmouth free — hips, creepers and L/T junctions with Pro.
+          Metric set-out — rafters, hips, creepers
         </p>
         <p className="mt-2 max-w-md text-sm leading-normal text-subtle">
           Free forever: gable ends, common rafter, birdsmouth. Pro unlock ($39.99 AUD, one-time) covers

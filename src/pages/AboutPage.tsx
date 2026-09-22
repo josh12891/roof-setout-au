@@ -11,12 +11,12 @@ export function AboutPage() {
   const { unlocked, complimentaryUnlock, restorePurchases, busy, priceLabel } = useUnlock();
 
   return (
-    <AppShell title="About" subtitle="Offline roof set-out for Australian carpenters." back>
+    <AppShell title="About" subtitle="Metric set-out — rafters, hips, creepers" back>
       <Card className="mb-4">
         <CardHeader>
-          <CardTitle>Roof Setout AU</CardTitle>
+          <CardTitle>AU Roof Carpenter</CardTitle>
           <CardDescription>
-            Working title — app name TBD. Published by Australian Dynamics.
+            Metric set-out — rafters, hips, creepers. Published by Australian Dynamics.
           </CardDescription>
         </CardHeader>
         <div className="space-y-3 text-sm text-muted">
@@ -90,7 +90,7 @@ export function PrivacyPage() {
         <CardHeader>
           <CardTitle>On-device only</CardTitle>
           <CardDescription>
-            Roof Setout AU does not create accounts or sync measurements to our servers.
+            AU Roof Carpenter does not create accounts or sync measurements to our servers.
           </CardDescription>
         </CardHeader>
         <div className="space-y-3 text-sm text-muted">

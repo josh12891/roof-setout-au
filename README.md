@@ -1,16 +1,17 @@
-# Roof Setout AU
+# AU Roof Carpenter
 
-Working title (**name TBD** — keep `com.josh12891.roofsetout` and rename display strings later). Offline roof set-out for Australian carpenters: **gable ends**, **common rafter / birdsmouth**, **hip & valley**, **creepers**, and **L/T junctions**.
+Offline roof set-out for Australian carpenters — **gable ends**, **common rafter / birdsmouth**, **hip & valley**, **creepers**, and **L/T junctions**.
 
 This is a **Capacitor + Vite + React + TypeScript SPA**. Web assets bundle into the native shells so every tool works **offline**. No login, no cloud database, no ads.
 
 | | |
 | --- | --- |
-| Display name | Roof Setout AU |
-| Package / app ID | `com.josh12891.roofsetout` |
+| Display name | AU Roof Carpenter |
+| Subtitle | Metric set-out — rafters, hips, creepers |
+| Package / app ID | `com.josh12891.roofsetout` (do not rename) |
 | Seller / publisher | Australian Dynamics (Australia) |
 | Support email | australiancomsnetwork@gmail.com |
-| npm name | `roof-setout-au` |
+| npm / repo folder | `roof-setout-au` (unchanged) |
 | Privacy policy (Play + App Store Connect) | **https://josh12891.github.io/roof-setout-au/privacy.html** |
 | IAP product id | `roof_setout_pro_unlock` |
 | IAP price | **$39.99 AUD** one-time (placeholder — not a subscription) |
@@ -72,18 +73,20 @@ npx cap open android   # or: npm run cap:android
 npx cap open ios       # or: npm run cap:ios (macOS)
 ```
 
-- **appId:** `com.josh12891.roofsetout`
-- **appName:** `Roof Setout AU`
+- **appId:** `com.josh12891.roofsetout` (locked — do not rename)
+- **appName / CFBundleDisplayName:** `AU Roof Carpenter`
 - **webDir:** `dist` (see `capacitor.config.json`)
 - Platforms live in `android/` and `ios/` and are committed so store builds are reproducible.
 
 Production always loads the bundled `dist` copy (no live reload in store binaries).
 
-### Rename later (display name TBD)
+### Display-name rename checklist
+
+If the display name changes again later:
 
 1. Change `appName` in `capacitor.config.json` and the `<title>` / home heading copy.
 2. Update `android/app/src/main/res/values/strings.xml` `app_name`.
-3. Update iOS display name in Xcode / `Info.plist`.
+3. Update iOS `CFBundleDisplayName` in `Info.plist`.
 4. Keep **`com.josh12891.roofsetout`** unless you intentionally create a new store listing.
 5. Re-run `npm run cap:sync`.
 
@@ -99,8 +102,9 @@ Source: `public/privacy.html` (copied to `docs/privacy.html` on `npm test` / `np
 
 - [ ] Create Play Console app with application id `com.josh12891.roofsetout`
 - [ ] Upload a signed AAB that declares Play Billing, then create IAP `roof_setout_pro_unlock` at AUD 39.99
-- [ ] Create App Store Connect app + StoreKit product `roof_setout_pro_unlock`
+- [ ] Create App Store Connect app (display name **AU Roof Carpenter**) + StoreKit product `roof_setout_pro_unlock`
 - [ ] Paste privacy URL into both stores
+- [ ] Subtitle lean: **Metric set-out — rafters, hips, creepers**
 - [ ] Generate final icon/splash (`npm run assets` once brand mark is final)
 - [ ] No ASC/Play public listings required yet
 

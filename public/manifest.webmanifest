@@ -1,7 +1,7 @@
 {
-  "name": "Roof Setout AU",
-  "short_name": "Roof Setout",
-  "description": "Offline roof set-out for Australian carpenters.",
+  "name": "AU Roof Carpenter",
+  "short_name": "AU Roof Carp",
+  "description": "Metric set-out — rafters, hips, creepers.",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#d9e2e8",

@@ -12,9 +12,10 @@ function read(rel: string) {
 describe("native Capacitor shells", () => {
   it("uses com.josh12891.roofsetout on Android and iOS", () => {
     expect(read("android/app/build.gradle")).toContain('applicationId "com.josh12891.roofsetout"');
-    expect(read("android/app/src/main/res/values/strings.xml")).toContain("Roof Setout AU");
+    expect(read("android/app/src/main/res/values/strings.xml")).toContain("AU Roof Carpenter");
     expect(read("capacitor.config.json")).toContain('"appId": "com.josh12891.roofsetout"');
-    expect(read("ios/App/App/Info.plist")).toContain("Roof Setout AU");
+    expect(read("capacitor.config.json")).toContain('"appName": "AU Roof Carpenter"');
+    expect(read("ios/App/App/Info.plist")).toContain("AU Roof Carpenter");
     expect(read("ios/App/App.xcodeproj/project.pbxproj")).toContain(
       "PRODUCT_BUNDLE_IDENTIFIER = com.josh12891.roofsetout;",
     );

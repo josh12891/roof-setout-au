@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Roof Setout AU — offline hip/valley and common rafter set-out for Australian carpenters.",
+  "description": "AU Roof Carpenter — metric set-out for Australian carpenters: rafters, hips, creepers.",
   "scripts": {
     "dev": "vite",
     "build": "node scripts/sync-privacy-docs.mjs && tsc -b && vite build",

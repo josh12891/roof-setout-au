@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Roof Setout AU</string>
-    <string name="title_activity_main">Roof Setout AU</string>
+    <string name="app_name">AU Roof Carpenter</string>
+    <string name="title_activity_main">AU Roof Carpenter</string>
     <string name="package_name">com.josh12891.roofsetout</string>
     <string name="custom_url_scheme">com.josh12891.roofsetout</string>
 </resources>

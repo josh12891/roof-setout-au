@@ -16,10 +16,12 @@ describe("privacy docs", () => {
 
   it("uses Australian Dynamics branding and the roof setout bundle id", () => {
     const html = readFileSync(path.join(root, "public", "privacy.html"), "utf8");
+    expect(html).toContain("AU Roof Carpenter");
     expect(html).toContain("Australian Dynamics");
     expect(html).toContain("australiancomsnetwork@gmail.com");
     expect(html).toContain("com.josh12891.roofsetout");
     expect(html).toContain("roof_setout_pro_unlock");
     expect(html).not.toMatch(/josh@pearson|Joshua Pearson/i);
+    expect(html).not.toMatch(/Roof Setout AU/i);
   });
 });
