@@ -11,10 +11,12 @@
 # Setup: docs/ios-codemagic.md + README “Codemagic / Play / ASC”
 #
 # Codemagic UI / yaml (never commit secrets):
-#   integrations.app_store_connect -> reuse Developer Portal key: tradies-toolbox-asc
-#     (same Apple team; App Manager key can sign any app under the account).
-#     Only create a second key named au-roof-carpenter-asc if team policy requires
-#     a dedicated key — then change integrations.app_store_connect to match.
+#   integrations.app_store_connect -> Team integrations Developer Portal key:
+#     tradies-toolbox-asc-2 (Key ID KD39VS5B9X; Personal team). The yaml name must
+#     match the key name in Codemagic. Same Apple team; App Manager key can sign
+#     any app under the account. Only create a dedicated key named
+#     au-roof-carpenter-asc if team policy requires it — then change
+#     integrations.app_store_connect to match.
 #   android_signing / groups     -> roof-setout-upload OR keystore_credentials
 #     (CM_KEYSTORE_PATH / CM_KEYSTORE_PASSWORD / CM_KEY_ALIAS / CM_KEY_PASSWORD,
 #      or base64 CM_KEYSTORE + the same password vars — Josh supplies the existing
@@ -28,10 +30,10 @@ workflows:
     instance_type: mac_mini_m2
     max_build_duration: 90
 
-    # Reuse Tradies Toolbox ASC key when it covers the same Apple team.
-    # Team settings -> Team integrations -> Developer Portal -> tradies-toolbox-asc
+    # Must match Team integrations -> Developer Portal key name.
+    # Personal team key: tradies-toolbox-asc-2 (Key ID KD39VS5B9X).
     integrations:
-      app_store_connect: tradies-toolbox-asc
+      app_store_connect: tradies-toolbox-asc-2
 
     triggering:
       events:
@@ -165,7 +167,7 @@ workflows:
                || -z "${APP_STORE_CONNECT_KEY_IDENTIFIER:-}" \
                || -z "${APP_STORE_CONNECT_ISSUER_ID:-}" ]]; then
               echo "No App Store Connect API key in this environment - skip TestFlight."
-              echo "Add Team integrations -> Developer Portal key 'tradies-toolbox-asc'"
+              echo "Add Team integrations -> Developer Portal key 'tradies-toolbox-asc-2'"
               echo "or set APP_STORE_CONNECT_ISSUER_ID / KEY_IDENTIFIER / PRIVATE_KEY."
               echo "Signed IPA remains available as a build artifact."
               exit 0
