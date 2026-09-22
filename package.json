@@ -1,0 +1,56 @@
+{
+  "name": "roof-setout-au",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Roof Setout AU — offline hip/valley and common rafter set-out for Australian carpenters.",
+  "scripts": {
+    "dev": "vite",
+    "build": "node scripts/sync-privacy-docs.mjs && tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "node scripts/sync-privacy-docs.mjs && vitest run",
+    "test:watch": "vitest",
+    "lint": "oxlint",
+    "assets": "node scripts/generate-brand-assets.mjs && capacitor-assets generate --iconBackgroundColor '#1e3a4c' --iconBackgroundColorDark '#1e3a4c' --splashBackgroundColor '#d9e2e8' --splashBackgroundColorDark '#d9e2e8'",
+    "cap:sync": "npm run build && cap sync",
+    "cap:android": "npm run cap:sync && cap open android",
+    "cap:ios": "npm run cap:sync && cap open ios",
+    "android:keystore": "bash scripts/generate-upload-keystore.sh",
+    "android:bundle": "bash scripts/android-bundle-release.sh"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.6.9",
+    "@capacitor/core": "^7.6.9",
+    "@capacitor/ios": "^7.6.9",
+    "@capacitor/splash-screen": "^7.0.5",
+    "@capacitor/status-bar": "^7.0.6",
+    "@capgo/native-purchases": "^7.19.2",
+    "@fontsource/barlow": "^5.3.0",
+    "@fontsource/barlow-condensed": "^5.3.0",
+    "@radix-ui/react-slot": "^1.3.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.46.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-router": "^7.18.4",
+    "tailwind-merge": "^3.7.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^7.6.9",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^22.20.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "oxlint": "^1.83.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.1"
+  }
+}
