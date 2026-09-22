@@ -35,10 +35,10 @@ describe("Codemagic iOS CI", () => {
     expect(pbx).toContain("PRODUCT_BUNDLE_IDENTIFIER = com.josh12891.roofsetout;");
   });
 
-  it("guards TestFlight and reuses tradies-toolbox-asc without committing Apple secrets", () => {
+  it("guards TestFlight and uses tradies-toolbox-asc-2 without committing Apple secrets", () => {
     const yaml = read("codemagic.yaml");
     const gitignore = read(".gitignore");
-    expect(yaml).toMatch(/^    integrations:\n      app_store_connect: tradies-toolbox-asc$/m);
+    expect(yaml).toMatch(/^    integrations:\n      app_store_connect: tradies-toolbox-asc-2$/m);
     expect(yaml).toContain('PUBLISH_TESTFLIGHT: "true"');
     expect(yaml).toContain("No App Store Connect API key in this environment - skip TestFlight.");
     expect(yaml).toContain("app-store-connect publish --path");
@@ -65,8 +65,9 @@ describe("Codemagic iOS CI", () => {
     expect(docs).toContain("500");
     expect(docs).toContain("$0.095");
     expect(docs).toContain("App Store Connect API");
-    expect(docs).toContain("tradies-toolbox-asc");
-    expect(docs).toContain("integrations.app_store_connect: tradies-toolbox-asc");
+    expect(docs).toContain("tradies-toolbox-asc-2");
+    expect(docs).toContain("integrations.app_store_connect: tradies-toolbox-asc-2");
+    expect(docs).toContain("must match the Team integrations Developer Portal key name");
     expect(docs).toContain("Application variable");
     expect(docs).toContain("Code signing identities");
     expect(docs).toContain("TestFlight");
@@ -78,7 +79,7 @@ describe("Codemagic iOS CI", () => {
     expect(readme).toContain("ios-app-store");
     expect(readme).toContain("android-play");
     expect(readme).toContain("codemagic.yaml");
-    expect(readme).toContain("tradies-toolbox-asc");
+    expect(readme).toContain("tradies-toolbox-asc-2");
   });
 });
 
