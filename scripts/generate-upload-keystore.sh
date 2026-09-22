@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 # One-time Play upload key. Refuses to overwrite an existing .jks.
+# Use only before the first Play AAB upload. After Play accepts an AAB,
+# restore this same keystore into Codemagic (CM_KEYSTORE / roof-setout-upload)
+# — never generate a second upload key.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -7,7 +10,7 @@ JKS="$ROOT/android/upload-keystore.jks"
 PROPS="$ROOT/android/keystore.properties"
 NOTES="$ROOT/UPLOAD_KEYSTORE.md"
 ALIAS="upload"
-DNAME="CN=Joshua Pearson, OU=Australian Dynamics, O=Australian Dynamics, L=Australia, ST=Australia, C=AU"
+DNAME="CN=Australian Dynamics, OU=Australian Dynamics, O=Australian Dynamics, L=Australia, ST=Australia, C=AU"
 VALIDITY_DAYS=10000
 
 if [[ -f "$JKS" ]]; then
@@ -38,7 +41,7 @@ keyPassword=$KEY_PASSWORD
 EOF
 
 cat > "$NOTES" <<EOF
-# Tradies Toolbox — Play upload keystore
+# AU Roof Carpenter — Play upload keystore
 
 **Keep this file and \`android/upload-keystore.jks\` off git and in a password manager.**
 The first AAB uploaded to Play is signed with this key. Losing it blocks later updates
@@ -54,10 +57,12 @@ until you request an upload-key reset from Google.
 | Algorithm | RSA 2048 |
 | Validity | $VALIDITY_DAYS days |
 | Distinguished name | $DNAME |
-| Application id | \`com.josh12891.tradiestoolbox\` |
-| Package / Play app | Tradies Toolbox |
+| Application id | \`com.josh12891.roofsetout\` |
+| Package / Play app | AU Roof Carpenter |
+| Codemagic identity | \`roof-setout-upload\` (or group \`keystore_credentials\` with \`CM_KEYSTORE\` etc.) |
 
 Gradle reads \`android/keystore.properties\` (copy of \`android/keystore.properties.example\`).
+Codemagic \`android-play\` uses the same key via \`CM_KEYSTORE_PATH\` / \`CM_KEYSTORE\`.
 
 Rebuild:
 

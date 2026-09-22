@@ -45,7 +45,7 @@ import pathlib, sys, zipfile
 
 root = pathlib.Path(sys.argv[1])
 aab = pathlib.Path(sys.argv[2])
-app_id = "com.josh12891.tradiestoolbox"
+app_id = "com.josh12891.roofsetout"
 billing = "com.android.vending.BILLING"
 
 manifests = list((root / "android/app/build/intermediates").rglob("AndroidManifest.xml"))

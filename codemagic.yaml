@@ -1,0 +1,271 @@
+# AU Roof Carpenter - signed iOS IPA + Play AAB on Codemagic (no local Mac).
+#
+# Workflows:
+#   ios-app-store  — Capacitor iOS → signed IPA → TestFlight
+#   android-play   — Capacitor Android → signed AAB (Play Billing)
+#
+# Instance: mac_mini_m2 (free tier: 500 Mac M2 min/month, then ~$0.095/min)
+# Android also runs on M2 so the same machine image is available for both.
+#
+# Secrets stay in the Codemagic UI. Do not put .p8 / .p12 / .jks / passwords here.
+# Setup: docs/ios-codemagic.md + README “Codemagic / Play / ASC”
+#
+# Codemagic UI / yaml (never commit secrets):
+#   integrations.app_store_connect -> reuse Developer Portal key: tradies-toolbox-asc
+#     (same Apple team; App Manager key can sign any app under the account).
+#     Only create a second key named au-roof-carpenter-asc if team policy requires
+#     a dedicated key — then change integrations.app_store_connect to match.
+#   android_signing / groups     -> roof-setout-upload OR keystore_credentials
+#     (CM_KEYSTORE_PATH / CM_KEYSTORE_PASSWORD / CM_KEY_ALIAS / CM_KEY_PASSWORD,
+#      or base64 CM_KEYSTORE + the same password vars — Josh supplies the existing
+#      Play upload keystore; do NOT generate a second one after Play accepts an AAB)
+#   APP_STORE_APPLE_ID           -> numeric Apple ID after ASC app exists
+#   PUBLISH_TESTFLIGHT           -> yaml default "true"; override as Application variable
+
+workflows:
+  ios-app-store:
+    name: iOS App Store IPA
+    instance_type: mac_mini_m2
+    max_build_duration: 90
+
+    # Reuse Tradies Toolbox ASC key when it covers the same Apple team.
+    # Team settings -> Team integrations -> Developer Portal -> tradies-toolbox-asc
+    integrations:
+      app_store_connect: tradies-toolbox-asc
+
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.josh12891.roofsetout
+
+      # Uncomment if you stored ASC secrets in a Team/Application group
+      # named app_store_credentials instead of Team integrations.
+      # Expected secret names (never commit values):
+      #   APP_STORE_CONNECT_ISSUER_ID
+      #   APP_STORE_CONNECT_KEY_IDENTIFIER
+      #   APP_STORE_CONNECT_PRIVATE_KEY
+      #   CERTIFICATE_PRIVATE_KEY   # only if generating a cert via CLI
+      #   APP_STORE_APPLE_ID
+      # groups:
+      #   - app_store_credentials
+
+      vars:
+        BUNDLE_ID: com.josh12891.roofsetout
+        XCODE_WORKSPACE: App.xcworkspace
+        XCODE_SCHEME: App
+        # Numeric Apple ID: App Store Connect -> AU Roof Carpenter -> App Information.
+        # Leave empty until the ASC app record exists; then set here (Personal accounts)
+        # or as an Application / Team variable.
+        APP_STORE_APPLE_ID: ""
+        # "true" = upload IPA to App Store Connect / TestFlight when ASC creds exist.
+        # "false" = build the signed IPA only (artifact still downloadable).
+        PUBLISH_TESTFLIGHT: "true"
+      node: 22
+      xcode: latest
+      cocoapods: default
+
+    cache:
+      cache_paths:
+        - $HOME/.npm
+        - $CM_BUILD_DIR/node_modules
+        - $HOME/Library/Caches/CocoaPods
+        - $CM_BUILD_DIR/ios/App/Pods
+
+    scripts:
+      - name: Install npm dependencies
+        script: |
+          npm ci
+      - name: Build web
+        script: |
+          npm run build
+      - name: Sync Capacitor iOS
+        script: |
+          npx cap sync ios
+      - name: Set up code signing
+        script: |
+          set -euo pipefail
+          if [[ -n "${APP_STORE_CONNECT_PRIVATE_KEY:-}" \
+             && -n "${APP_STORE_CONNECT_KEY_IDENTIFIER:-}" \
+             && -n "${APP_STORE_CONNECT_ISSUER_ID:-}" \
+             && -n "${CERTIFICATE_PRIVATE_KEY:-}" ]]; then
+            echo "ASC API key and certificate private key present - fetching/creating App Store signing files for $BUNDLE_ID"
+            app-store-connect fetch-signing-files "$BUNDLE_ID" \
+              --type IOS_APP_STORE \
+              --create
+            keychain add-certificates
+          else
+            echo "Using Codemagic-managed iOS signing identities (certificate private key not supplied to build shell)."
+          fi
+          xcode-project use-profiles
+      - name: Increment iOS build number
+        script: |
+          set -euo pipefail
+          cd "$CM_BUILD_DIR/ios/App"
+          BUILD_NUM="${BUILD_NUMBER:-1}"
+          APPLE_ID="${APP_STORE_APPLE_ID:-}"
+          if [[ "$APPLE_ID" == \$APP_STORE_APPLE_ID ]]; then
+            APPLE_ID=""
+          fi
+          if [[ -n "$APPLE_ID" \
+             && -n "${APP_STORE_CONNECT_KEY_IDENTIFIER:-}" \
+             && -n "${APP_STORE_CONNECT_ISSUER_ID:-}" \
+             && -n "${APP_STORE_CONNECT_PRIVATE_KEY:-}" ]]; then
+            LATEST="$(app-store-connect get-latest-testflight-build-number "$APPLE_ID" || true)"
+            if [[ -z "${LATEST:-}" ]]; then
+              LATEST="$(app-store-connect get-latest-app-store-build-number "$APPLE_ID" || true)"
+            fi
+            if [[ -n "${LATEST:-}" ]]; then
+              BUILD_NUM="$((LATEST + 1))"
+            fi
+          fi
+          echo "Using CFBundleVersion $BUILD_NUM"
+          agvtool new-version -all "$BUILD_NUM"
+      - name: Build signed App Store IPA
+        script: |
+          set -euo pipefail
+          cd "$CM_BUILD_DIR/ios/App"
+          xcode-project build-ipa \
+            --workspace "$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME"
+
+    artifacts:
+      - ios/App/build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+
+    publishing:
+      # Native publisher stays commented so the script path does not double-upload.
+      # app_store_connect:
+      #   auth: integration
+      #   submit_to_testflight: true
+      #   submit_to_app_store: false
+      scripts:
+        - name: Publish to TestFlight when ASC credentials are present
+          script: |
+            set -euo pipefail
+            IPA="$(find "$CM_BUILD_DIR/ios/App/build/ios/ipa" -name '*.ipa' | head -1 || true)"
+            if [[ -z "${IPA:-}" ]]; then
+              echo "No IPA found - skip TestFlight."
+              exit 0
+            fi
+            if [[ "${PUBLISH_TESTFLIGHT:-false}" != "true" ]]; then
+              echo "PUBLISH_TESTFLIGHT is not true - skip TestFlight. IPA is a Codemagic artifact."
+              exit 0
+            fi
+            if [[ -z "${APP_STORE_CONNECT_PRIVATE_KEY:-}" \
+               || -z "${APP_STORE_CONNECT_KEY_IDENTIFIER:-}" \
+               || -z "${APP_STORE_CONNECT_ISSUER_ID:-}" ]]; then
+              echo "No App Store Connect API key in this environment - skip TestFlight."
+              echo "Add Team integrations -> Developer Portal key 'tradies-toolbox-asc'"
+              echo "or set APP_STORE_CONNECT_ISSUER_ID / KEY_IDENTIFIER / PRIVATE_KEY."
+              echo "Signed IPA remains available as a build artifact."
+              exit 0
+            fi
+            echo "Uploading $IPA to App Store Connect (TestFlight processing)..."
+            app-store-connect publish --path "$IPA"
+
+  android-play:
+    name: Android Play AAB
+    instance_type: mac_mini_m2
+    max_build_duration: 90
+
+    # Manual start by default (first Play listing / keystore must exist).
+    # Push-to-main can be enabled later once the upload keystore is in Codemagic.
+    triggering:
+      events: []
+
+    environment:
+      # Preferred: upload the existing Play upload keystore under
+      # Team settings -> Code signing identities -> Android keystores,
+      # reference name exactly "roof-setout-upload". That injects
+      # CM_KEYSTORE_PATH / CM_KEYSTORE_PASSWORD / CM_KEY_ALIAS / CM_KEY_PASSWORD.
+      android_signing:
+        - roof-setout-upload
+
+      # Alternative (env-group path, same CM_* names Codemagic documents):
+      # Create Application/Team group "keystore_credentials" with:
+      #   CM_KEYSTORE            (base64 of the .jks / .keystore — existing upload key)
+      #   CM_KEYSTORE_PASSWORD
+      #   CM_KEY_ALIAS
+      #   CM_KEY_PASSWORD
+      # Then uncomment:
+      # groups:
+      #   - keystore_credentials
+      # and keep the "Decode CM_KEYSTORE" script below.
+      # Do NOT invent a second upload keystore after Play has accepted an AAB.
+
+      vars:
+        PACKAGE_NAME: com.josh12891.roofsetout
+      node: 22
+      java: 17
+
+    cache:
+      cache_paths:
+        - $HOME/.npm
+        - $CM_BUILD_DIR/node_modules
+        - $HOME/.gradle/caches
+
+    scripts:
+      - name: Decode CM_KEYSTORE when provided as base64 group secret
+        script: |
+          set -euo pipefail
+          # android_signing already sets CM_KEYSTORE_PATH. Only decode when
+          # Josh/Codemagic supplied CM_KEYSTORE (base64) via a variable group.
+          if [[ -n "${CM_KEYSTORE:-}" && -z "${CM_KEYSTORE_PATH:-}" ]]; then
+            echo "$CM_KEYSTORE" | base64 --decode > "$CM_BUILD_DIR/keystore.jks"
+            export CM_KEYSTORE_PATH="$CM_BUILD_DIR/keystore.jks"
+            echo "CM_KEYSTORE_PATH=$CM_KEYSTORE_PATH" >> "$CM_ENV"
+          fi
+          if [[ -z "${CM_KEYSTORE_PATH:-}" ]]; then
+            echo "No CM_KEYSTORE_PATH — upload keystore as Code signing identity"
+            echo "'roof-setout-upload' or set group keystore_credentials (CM_KEYSTORE etc.)."
+            echo "Do not generate a new upload keystore if Play already has one."
+            exit 1
+          fi
+      - name: Set Android SDK location
+        script: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/android/local.properties"
+      - name: Install npm dependencies
+        script: |
+          npm ci
+      - name: Build web
+        script: |
+          npm run build
+      - name: Sync Capacitor Android
+        script: |
+          npx cap sync android
+      - name: Build signed Play AAB
+        script: |
+          set -euo pipefail
+          cd "$CM_BUILD_DIR/android"
+          ./gradlew :app:bundleRelease --no-daemon
+      - name: Verify BILLING + applicationId in AAB
+        script: |
+          set -euo pipefail
+          AAB="$CM_BUILD_DIR/android/app/build/outputs/bundle/release/app-release.aab"
+          python3 - "$AAB" <<'PY'
+          import sys, zipfile
+          aab = sys.argv[1]
+          app_id = b"com.josh12891.roofsetout"
+          billing = b"com.android.vending.BILLING"
+          with zipfile.ZipFile(aab) as zf:
+              raw = zf.read("base/manifest/AndroidManifest.xml")
+          if billing not in raw:
+              sys.exit("AAB binary manifest missing com.android.vending.BILLING")
+          if app_id not in raw:
+              sys.exit("AAB binary manifest missing com.josh12891.roofsetout")
+          print("OK: AAB has BILLING + applicationId")
+          PY
+
+    artifacts:
+      - android/app/build/outputs/**/*.aab
+      - android/app/build/outputs/**/*.apk
