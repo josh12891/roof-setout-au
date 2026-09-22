@@ -21,7 +21,7 @@ export function AboutPage() {
         </CardHeader>
         <div className="space-y-3 text-sm text-muted">
           <p>
-            Metric gable ends, common rafter (with birdsmouth), hip/valley, creeper and L/T
+            Metric gable ends, common rafter (with birdsmouth), hip set-out, creeper schedule and L/T
             junction calculators. No login, no cloud database, no ads. Calculations stay on this
             device.
           </p>
@@ -45,7 +45,7 @@ export function AboutPage() {
             <CardDescription>
               {complimentaryUnlock
                 ? TESTFLIGHT_SCREENSHOT_NOTE
-                : "Hip, creeper and L/T junctions are available offline on this device."}
+                : "Hip set-out, creeper schedule and L/T junctions are available offline on this device."}
             </CardDescription>
           </CardHeader>
         </Card>

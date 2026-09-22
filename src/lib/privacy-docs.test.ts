@@ -23,5 +23,6 @@ describe("privacy docs", () => {
     expect(html).toContain("roof_setout_pro_unlock");
     expect(html).not.toMatch(/josh@pearson|Joshua Pearson/i);
     expect(html).not.toMatch(/Roof Setout AU/i);
+    expect(html).not.toMatch(/Australian Carpentry/i);
   });
 });

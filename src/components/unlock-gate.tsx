@@ -14,8 +14,8 @@ export function UnlockCta({
   const { purchaseUnlock, restorePurchases, priceLabel, busy, footnote } = useUnlock();
   const [status, setStatus] = useState<string | null>(null);
   const winLine = toolLabel
-    ? `That's your free ${toolLabel}. Unlock Pro once for hip/valley, creepers and L/T junctions.`
-    : "That's your free calculation. Unlock Pro once for hip/valley, creepers and L/T junctions.";
+    ? `That's your free ${toolLabel}. Unlock Pro once for hip set-out, creeper schedule, common difference, cutting list and material order.`
+    : "That's your free calculation. Unlock Pro once for hip set-out, creeper schedule, common difference, cutting list and material order.";
 
   return (
     <Card>
@@ -24,13 +24,14 @@ export function UnlockCta({
         <CardDescription>
           {afterWin
             ? winLine
-            : `One-time ${priceLabel}. Unlocks hip/valley, creepers and L/T junctions forever.`}
+            : `One-time ${priceLabel}. Unlocks hip set-out, creeper schedule and L/T junctions forever.`}
         </CardDescription>
       </CardHeader>
       <ul className="mb-5 flex flex-col gap-1.5 text-sm text-ink">
-        <li>— Hip and valley lengths, backing and side cuts</li>
-        <li>— Creeper (jack) reductions and plate marks</li>
-        <li>— L / T plan junctions (equal or unequal pitch)</li>
+        <li>— Hip / valley set-out (lengths, backing, side cuts)</li>
+        <li>— Creeper schedule with common difference</li>
+        <li>— Full cutting list + job-level material order</li>
+        <li>— L / T plan junctions</li>
       </ul>
       <p className="mb-5 text-sm text-muted">
         Gable ends, common rafter and birdsmouth stay free on this device.

@@ -122,9 +122,11 @@ describe("creepers", () => {
     // Each bay shortens the slope length by centres / cos(pitch).
     const cos = Math.cos((22.5 * Math.PI) / 180);
     expect(result.reductionPerBayMm).toBeCloseTo(600 / cos, 5);
+    expect(result.commonDifferenceMm).toBeCloseTo(600 / cos, 5);
     const delta =
       (result.members[0]?.slopeLengthMm ?? 0) - (result.members[1]?.slopeLengthMm ?? 0);
     expect(delta).toBeCloseTo(600 / cos, 4);
+    expect(delta).toBeCloseTo(result.commonDifferenceMm, 4);
   });
 
   it("returns no members when centres are zero", () => {

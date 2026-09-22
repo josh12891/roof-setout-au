@@ -31,4 +31,14 @@ export {
   roundMm,
 } from "./geometry";
 
+export {
+  DEFAULT_KERF_MM,
+  DEFAULT_STOCK_LENGTHS_MM,
+  buildCuttingLines,
+  pickStockLength,
+  rollupMaterialOrder,
+  summarizeMaterialOrder,
+} from "./materials";
+export type { CuttingLine, MaterialOrderLine, MaterialOrderSummary } from "./materials";
+
 export { calculateJunction } from "./junction";

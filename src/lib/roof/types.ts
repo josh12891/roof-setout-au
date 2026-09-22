@@ -103,6 +103,12 @@ export type CreeperMember = {
 
 export type CreeperResult = {
   pitchDegrees: number;
+  /**
+   * Common difference — incremental decrease in creeper slope length
+   * per bay (centres / cos(pitch)). Hero Pro result.
+   */
+  commonDifferenceMm: number;
+  /** @deprecated Prefer commonDifferenceMm — same value. */
   reductionPerBayMm: number;
   members: CreeperMember[];
   count: number;

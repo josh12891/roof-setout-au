@@ -39,7 +39,7 @@ export function HipSetoutTool() {
 
   return (
     <AppShell
-      title="Hip / valley"
+      title="Hip set-out"
       subtitle="Equal-pitch lengths, backing and side cuts."
       back
     >

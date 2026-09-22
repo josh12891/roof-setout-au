@@ -22,8 +22,8 @@ Public surfaces use **Australian Dynamics** and **australiancomsnetwork@gmail.co
 
 1. **Gable ends** (free) — rise, ridge length, barge/rake on a rectangular gable.
 2. **Common rafter** (free) — span, pitch (degrees or rise:run), overhang, birdsmouth seat / heel / remaining depth, plumb & level cuts.
-3. **Hip / valley** (Pro) — equal-pitch plan run, hip pitch, slope length, backing and side cuts.
-4. **Creepers** (Pro) — plate marks, remaining run, slope lengths and overhang totals per jack.
+3. **Hip set-out** (Pro) — equal-pitch plan run, hip pitch, slope length, backing and side cuts.
+4. **Creeper schedule** (Pro) — common difference (hero), plate marks, cutting list and job-level material order.
 5. **L / T junctions** (Pro) — equal hip/valley or unequal-pitch joins on an L or T plan.
 
 Skillion is **not** in this build (not claimed, not gated).
@@ -35,7 +35,7 @@ Product maths live in `src/lib/roof` (geometry, junction, types, tests). UI in `
 | | |
 | --- | --- |
 | Free forever | Gable ends, common rafter, birdsmouth |
-| One free calculation each | Hip/valley, creeper setout, L/T junctions |
+| One free calculation each | Hip set-out, creeper schedule (common difference, cutting list, material order), L/T junctions |
 | Paid unlock | Same **$39.99 AUD** one-time purchase unlocks all Pro tools |
 | Product id | `roof_setout_pro_unlock` (non-consumable / managed product) |
 
@@ -107,6 +107,18 @@ Source: `public/privacy.html` (copied to `docs/privacy.html` on `npm test` / `np
 - [ ] Subtitle lean: **Metric set-out — rafters, hips, creepers**
 - [ ] Generate final icon/splash (`npm run assets` once brand mark is final)
 - [ ] No ASC/Play public listings required yet
+
+
+## Roof Features checklist (Josh + Roof Features)
+
+| # | Requirement | Status |
+| --- | --- | --- |
+| 1 | Creeper-first language (prefer “creeper” over “jack” in UI) | **Done** |
+| 2 | Aggregated material order rollup (job-level, not only per-row stock) | **Done** (creeper schedule) |
+| 3 | Common difference / incremental decrease as hero Pro result | **Done** (creeper schedule) |
+| 4 | Freemium: free gable/common/birdsmouth; Pro hip set-out, creeper schedule, common difference, cutting list + material order, L/T | **Done** |
+| 5 | Branding AU Roof Carpenter + subtitle lean; no “Australian Carpentry”; bundle `com.josh12891.roofsetout` | **Done** |
+| 6 | Do not claim skillion until shipped | **Done** (not in UI / unlock) |
 
 ## Prototype note
 

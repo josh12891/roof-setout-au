@@ -130,9 +130,9 @@ export function calculateHipValley(input: HipValleyInput): HipValleyResult {
 }
 
 /**
- * Hip creepers (jacks) from the corner along one wall plate.
+ * Hip creepers from the corner along one wall plate.
  * Equal-pitch square hip: each bay reduces remaining common run by centres.
- * Reduction along the slope ≈ centres / cos(commonPitch).
+ * Common difference (incremental decrease on the slope) ≈ centres / cos(pitch).
  */
 export function calculateCreepers(input: CreeperInput): CreeperResult {
   const { radians, degrees } = pitchFromInput(input.pitch);
@@ -145,11 +145,17 @@ export function calculateCreepers(input: CreeperInput): CreeperResult {
 
   // On plan, hip sits on the 45° bisector for a 90° corner. Moving `centres`
   // along the plate reduces the remaining common run by the same amount.
-  const reductionOnSlope = cos === 0 ? 0 : centresMm / cos;
+  const commonDifferenceMm = cos === 0 ? 0 : centresMm / cos;
 
   const members: CreeperMember[] = [];
   if (centresMm <= 0 || runMm <= 0) {
-    return { pitchDegrees: degrees, reductionPerBayMm: reductionOnSlope, members, count: 0 };
+    return {
+      pitchDegrees: degrees,
+      commonDifferenceMm,
+      reductionPerBayMm: commonDifferenceMm,
+      members,
+      count: 0,
+    };
   }
 
   let index = 1;
@@ -172,7 +178,8 @@ export function calculateCreepers(input: CreeperInput): CreeperResult {
 
   return {
     pitchDegrees: degrees,
-    reductionPerBayMm: reductionOnSlope,
+    commonDifferenceMm,
+    reductionPerBayMm: commonDifferenceMm,
     members,
     count: members.length,
   };

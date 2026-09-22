@@ -20,8 +20,8 @@ export const PUBLIC_PRIVACY_URL =
 /**
  * Team freemium lock (this build):
  * Free forever — gable ends, common rafter, birdsmouth.
- * Pro — hip/valley, creeper setout, L/T junctions.
- * Skillion is not in this build (do not claim or gate it).
+ * Pro — hip set-out, creeper schedule (common difference, cutting list,
+ * material order), L/T junctions. Skillion is not in this build.
  */
 export type ToolId = "gable" | "common" | "hip" | "creeper" | "junction";
 
@@ -62,8 +62,10 @@ export function hasFreeUseRemaining(id: PaidToolId, consumed: FreeUseCounts): bo
 
 /**
  * Whether this tool may run a calculation now.
- * Gable ends + common rafter (incl. birdsmouth) stay free. Hip, creeper and
- * L/T junctions each get one free real calculation; after that they need Pro.
+ * Gable ends + common rafter (incl. birdsmouth) stay free. Hip set-out,
+ * creeper schedule and L/T junctions each get one free real calculation;
+ * after that they need Pro (includes common difference, cutting list and
+ * material order on the creeper tool).
  */
 export function canUseTool(
   id: ToolId,

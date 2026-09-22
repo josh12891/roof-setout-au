@@ -31,15 +31,15 @@ const TOOLS = [
   {
     id: "hip" as const satisfies ToolId,
     to: "/hip" as const,
-    title: "Hip / valley",
+    title: "Hip set-out",
     copy: "Equal-pitch hip and valley lengths, backing bevel and side cuts.",
     icon: HipIcon,
   },
   {
     id: "creeper" as const satisfies ToolId,
     to: "/creeper" as const,
-    title: "Creepers",
-    copy: "Jack reductions, plate marks and lengths along the hip.",
+    title: "Creeper schedule",
+    copy: "Common difference, creeper schedule, cutting list and material order.",
     icon: CreeperIcon,
   },
   {
@@ -70,8 +70,9 @@ export function HomePage() {
           Metric set-out — rafters, hips, creepers
         </p>
         <p className="mt-2 max-w-md text-sm leading-normal text-subtle">
-          Free forever: gable ends, common rafter, birdsmouth. Pro unlock ($39.99 AUD, one-time) covers
-          hip/valley, creeper setout and L/T junctions — each with one free calculation first.
+          Free forever: gable ends, common rafter, birdsmouth. Pro unlock ($39.99 AUD, one-time)
+          covers hip set-out, creeper schedule (common difference, cutting list, material order) and
+          L/T junctions — each with one free calculation first.
         </p>
       </header>
 
