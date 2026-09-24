@@ -42,5 +42,9 @@ describe("native Capacitor shells", () => {
     expect(storyboard).toContain('customClass="BridgeViewController"');
     expect(pbx).toContain("DistributionPlugin.swift");
     expect(pbx).toContain("IPHONEOS_DEPLOYMENT_TARGET = 15.0;");
+    expect(pbx).not.toMatch(/IPHONEOS_DEPLOYMENT_TARGET = 1[0-4]\./);
+    const podfile = read("ios/App/Podfile");
+    expect(podfile).toContain("platform :ios, '15.0'");
+    expect(podfile).not.toMatch(/platform :ios, '1[0-4]\./);
   });
 });

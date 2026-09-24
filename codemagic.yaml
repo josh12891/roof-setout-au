@@ -12,7 +12,7 @@
 #
 # Codemagic UI / yaml (never commit secrets):
 #   integrations.app_store_connect -> Team integrations Developer Portal key:
-#     tradies-toolbox-asc-2 (Key ID KD39VS5B9X; Personal team). The yaml name must
+#     tradies-toolbox-asc (Key ID RKW2G7LD5J; Personal team). The yaml name must
 #     match the key name in Codemagic. Same Apple team; App Manager key can sign
 #     any app under the account. Only create a dedicated key named
 #     au-roof-carpenter-asc if team policy requires it — then change
@@ -31,9 +31,9 @@ workflows:
     max_build_duration: 90
 
     # Must match Team integrations -> Developer Portal key name.
-    # Personal team key: tradies-toolbox-asc-2 (Key ID KD39VS5B9X).
+    # Personal team key: tradies-toolbox-asc (Key ID RKW2G7LD5J).
     integrations:
-      app_store_connect: tradies-toolbox-asc-2
+      app_store_connect: tradies-toolbox-asc
 
     triggering:
       events:
@@ -167,7 +167,7 @@ workflows:
                || -z "${APP_STORE_CONNECT_KEY_IDENTIFIER:-}" \
                || -z "${APP_STORE_CONNECT_ISSUER_ID:-}" ]]; then
               echo "No App Store Connect API key in this environment - skip TestFlight."
-              echo "Add Team integrations -> Developer Portal key 'tradies-toolbox-asc-2'"
+              echo "Add Team integrations -> Developer Portal key 'tradies-toolbox-asc'"
               echo "or set APP_STORE_CONNECT_ISSUER_ID / KEY_IDENTIFIER / PRIVATE_KEY."
               echo "Signed IPA remains available as a build artifact."
               exit 0

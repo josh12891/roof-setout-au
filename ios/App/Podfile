@@ -1,6 +1,9 @@
 require_relative '../../node_modules/@capacitor/ios/scripts/pods_helpers'
 
-platform :ios, '14.0'
+# CapgoNativePurchases (@capgo/native-purchases 7.19.x) sets
+# s.ios.deployment_target = '15.0'. CocoaPods rejects a lower platform.
+# Keep this in line with IPHONEOS_DEPLOYMENT_TARGET in App.xcodeproj.
+platform :ios, '15.0'
 use_frameworks!
 
 # workaround to avoid Xcode caching of Pods that requires
