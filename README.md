@@ -116,7 +116,7 @@ Workflows live in [`codemagic.yaml`](codemagic.yaml). Full iOS walkthrough: **[d
 | | |
 | --- | --- |
 | Bundle id | `com.josh12891.roofsetout` |
-| ASC integration | **`tradies-toolbox-asc-2`** (Key ID `KD39VS5B9X`; must match Team integrations Developer Portal key name). Same Apple team; App Manager key can sign any app under the account. Only create **`au-roof-carpenter-asc`** if you need a dedicated key — then rename `integrations.app_store_connect` in the yaml. |
+| ASC integration | **`tradies-toolbox-asc`** (Key ID `RKW2G7LD5J`; must match Team integrations Developer Portal key name). Same Apple team; App Manager key can sign any app under the account. Only create **`au-roof-carpenter-asc`** if you need a dedicated key — then rename `integrations.app_store_connect` in the yaml. |
 | `APP_STORE_APPLE_ID` | `6814817371` (**AU Roof Carpenter**, bundle `com.josh12891.roofsetout`) |
 | `PUBLISH_TESTFLIGHT` | Yaml default `true`; override as an Application variable to skip upload |
 | Secrets | Codemagic UI only — never commit `.p8` / `.p12` / passwords |
@@ -151,7 +151,7 @@ Gradle release signing reads Codemagic `CM_*` env vars when present, otherwise `
 - [x] App Store Connect app: display name **AU Roof Carpenter**, subtitle **Metric set-out — rafters, hips, creepers**, support australiancomsnetwork@gmail.com (Apple ID `6814817371`, bundle `com.josh12891.roofsetout`)
 - [ ] StoreKit product `roof_setout_pro_unlock` at **$39.99 AUD** (non-consumable)
 - [ ] Paste privacy URL into both stores
-- [ ] Codemagic `ios-app-store` + `tradies-toolbox-asc-2` → TestFlight IPA
+- [ ] Codemagic `ios-app-store` + `tradies-toolbox-asc` → TestFlight IPA
 - [x] `APP_STORE_APPLE_ID` set to `6814817371`
 - [ ] Lauren (`lozzpearson@gmail.com`) on TestFlight for Pro screenshots (complimentary unlock — production stays freemium)
 - [ ] Generate final icon/splash (`npm run assets` once brand mark is final)
@@ -178,5 +178,5 @@ Mirrors [Tradies Toolbox](https://github.com/josh12891/chippys-toolbox): Vite we
 
 ```
 docs/            GitHub Pages (privacy.html + index) + ios-codemagic.md
-codemagic.yaml   ios-app-store (TestFlight via tradies-toolbox-asc-2) + android-play (CM_KEYSTORE)
+codemagic.yaml   ios-app-store (TestFlight via tradies-toolbox-asc) + android-play (CM_KEYSTORE)
 ```

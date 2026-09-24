@@ -9,7 +9,7 @@ Build a **signed App Store IPA** for AU Roof Carpenter on a cloud Mac, then opti
 | Bundle id | `com.josh12891.roofsetout` |
 | Display name | AU Roof Carpenter |
 | IAP product | `roof_setout_pro_unlock` ($39.99 AUD — StoreKit, not the CI file) |
-| ASC integration | **`tradies-toolbox-asc-2`** (Key ID `KD39VS5B9X`; must match Team integrations Developer Portal key name) |
+| ASC integration | **`tradies-toolbox-asc`** (Key ID `RKW2G7LD5J`; must match Team integrations Developer Portal key name) |
 | App Store Apple ID | `6814817371` (`APP_STORE_APPLE_ID` — ASC app `com.josh12891.roofsetout`) |
 | Secrets | Codemagic UI only. Never commit `.p8`, `.p12`, or passwords. |
 
@@ -30,7 +30,7 @@ Build a **signed App Store IPA** for AU Roof Carpenter on a cloud Mac, then opti
 
 Needs an Apple Developer Program membership.
 
-**Use the Codemagic Personal team Developer Portal key `tradies-toolbox-asc-2`** (Key ID `KD39VS5B9X`). An App Manager ASC API key can sign and upload any app under the same Apple team, including `com.josh12891.roofsetout`. `codemagic.yaml` points `integrations.app_store_connect` at that name. The yaml value must match the Team integrations Developer Portal key name.
+**Use the Codemagic Personal team Developer Portal key `tradies-toolbox-asc`** (Key ID `RKW2G7LD5J`). An App Manager ASC API key can sign and upload any app under the same Apple team, including `com.josh12891.roofsetout`. `codemagic.yaml` points `integrations.app_store_connect` at that name. The yaml value must match the Team integrations Developer Portal key name.
 
 Only create a second key named **`au-roof-carpenter-asc`** if team policy requires a dedicated key — then change `integrations.app_store_connect` in the yaml to match and upload that `.p8` instead.
 
@@ -46,8 +46,8 @@ To create a new key if needed:
 **Team integrations (recommended):**
 
 1. Codemagic → **Team settings** → **Team integrations** → **Developer Portal** → **Manage keys**.
-2. Confirm a key named exactly **`tradies-toolbox-asc-2`** exists (Key ID `KD39VS5B9X`). The yaml name must match the Team integrations Developer Portal key name (or add **`au-roof-carpenter-asc`** and update the yaml).
-3. `ios-app-store` already sets `integrations.app_store_connect: tradies-toolbox-asc-2`. That injects `APP_STORE_CONNECT_*` so signing and TestFlight publish run when the key exists. Do not put the `.p8` in git.
+2. Confirm a key named exactly **`tradies-toolbox-asc`** exists (Key ID `RKW2G7LD5J`). The yaml name must match the Team integrations Developer Portal key name (or add **`au-roof-carpenter-asc`** and update the yaml).
+3. `ios-app-store` already sets `integrations.app_store_connect: tradies-toolbox-asc`. That injects `APP_STORE_CONNECT_*` so signing and TestFlight publish run when the key exists. Do not put the `.p8` in git.
 
 **Or Application / Team variables** (group name `app_store_credentials` if you uncomment `environment.groups` in the yaml):
 
@@ -94,7 +94,7 @@ Publishing **does not fail the build** when Apple credentials are missing. The s
 Upload happens only when **all** of these are true:
 
 - `PUBLISH_TESTFLIGHT` is `true` (yaml default; override with Application variable `PUBLISH_TESTFLIGHT` in the Codemagic UI)
-- The Developer Portal integration **`tradies-toolbox-asc-2`** is present (or `APP_STORE_CONNECT_ISSUER_ID`, `APP_STORE_CONNECT_KEY_IDENTIFIER`, and `APP_STORE_CONNECT_PRIVATE_KEY` are set as Application secrets)
+- The Developer Portal integration **`tradies-toolbox-asc`** is present (or `APP_STORE_CONNECT_ISSUER_ID`, `APP_STORE_CONNECT_KEY_IDENTIFIER`, and `APP_STORE_CONNECT_PRIVATE_KEY` are set as Application secrets)
 
 Then `app-store-connect publish` uploads the IPA. It appears under TestFlight after Apple processing (often 5–15 minutes). Internal testers can install; turn on external groups in App Store Connect if you need them.
 
@@ -119,7 +119,7 @@ Keep `publishing.app_store_connect` commented. The script publisher already uplo
 
 - [ ] Codemagic free account, GitHub repo `josh12891/roof-setout-au` connected, yaml scanned
 - [x] `APP_STORE_APPLE_ID` set to `6814817371` (ASC app exists)
-- [ ] Developer Portal key **`tradies-toolbox-asc-2`** (Key ID `KD39VS5B9X`; name must match Team integrations) reused (or dedicated `au-roof-carpenter-asc` + yaml rename)
+- [ ] Developer Portal key **`tradies-toolbox-asc`** (Key ID `RKW2G7LD5J`; name must match Team integrations) reused (or dedicated `au-roof-carpenter-asc` + yaml rename)
 - [ ] ASC API key stored in Codemagic + password manager (never git)
 - [ ] Distribution cert + App Store profile for `com.josh12891.roofsetout` in Code signing identities
 - [ ] Manual **ios-app-store** build produces `App.ipa`
