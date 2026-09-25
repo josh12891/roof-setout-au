@@ -20,7 +20,7 @@ export function AppShell({
         {back ? (
           <Link
             to="/"
-            aria-label="Back to tools"
+            aria-label="Back to roof set-out"
             className="mt-0.5 flex size-12 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-ink shadow-sheet transition-transform duration-150 ease-out active:scale-[0.96]"
           >
             <ArrowLeft className="size-5" />

@@ -4,8 +4,8 @@
   "description": "Metric set-out — rafters, hips, creepers.",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#d9e2e8",
-  "theme_color": "#1e3a4c",
+  "background_color": "#f3efe4",
+  "theme_color": "#2d4a3c",
   "lang": "en-AU",
   "icons": [
     {

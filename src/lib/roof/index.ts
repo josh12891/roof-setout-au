@@ -1,44 +1,18 @@
 export type {
-  BirdsmouthInput,
-  BirdsmouthResult,
-  CommonRafterInput,
-  CommonRafterResult,
-  CreeperInput,
-  CreeperMember,
-  CreeperResult,
-  GableEndsInput,
-  GableEndsResult,
-  HipValleyInput,
-  HipValleyKind,
-  HipValleyResult,
-  JunctionInput,
-  JunctionKind,
-  JunctionResult,
-  LtPlanShape,
-  PitchInput,
+  Bevels,
+  Birdsmouth,
+  Covering,
+  Creeper,
+  EndType,
+  Junction,
+  Member,
+  MemberCut,
+  RoofInputs,
+  RoofResult,
+  SpacingMm,
 } from "./types";
 
-export {
-  birdsmouthFromSeat,
-  calculateCommonRafter,
-  calculateCreepers,
-  calculateGableEnds,
-  calculateHipValley,
-  clampPositive,
-  pitchFromInput,
-  risePer300FromPitch,
-  roundDeg,
-  roundMm,
-} from "./geometry";
+export { calculateRoof, DEFAULT_INPUTS, MEMBER_PRESETS, PITCH_PRESETS } from "./geometry";
 
-export {
-  DEFAULT_KERF_MM,
-  DEFAULT_STOCK_LENGTHS_MM,
-  buildCuttingLines,
-  pickStockLength,
-  rollupMaterialOrder,
-  summarizeMaterialOrder,
-} from "./materials";
-export type { CuttingLine, MaterialOrderLine, MaterialOrderSummary } from "./materials";
-
-export { calculateJunction } from "./junction";
+export { junctionLayout, stationsFromCorner, valleyXAtY, valleyYsAtX } from "./junction";
+export type { JunctionLayout, MemberSeg, PlanDim, RafterKind, Seg } from "./junction";

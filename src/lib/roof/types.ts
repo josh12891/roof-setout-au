@@ -1,169 +1,130 @@
-/** Pitch as degrees or rise:run (same units on rise and run). */
-export type PitchInput =
-  | { kind: "degrees"; degrees: number }
-  | { kind: "rise-run"; rise: number; run: number };
+export type EndType = "hip" | "gable";
+export type SpacingMm = 450 | 600;
+export type Junction = "none" | "L" | "T";
+export type Covering = "sheet" | "tile";
 
-export type BirdsmouthInput = {
-  /** Horizontal seat (level cut) on the plate, mm. */
-  seatMm: number;
-  /** Rafter depth (actual timber depth), mm. */
-  rafterDepthMm: number;
+export type Member = {
+  depth: number;
+  breadth: number;
 };
 
-export type CommonRafterInput = {
-  /** Full building span wall-plate to wall-plate, mm. */
-  spanMm: number;
-  pitch: PitchInput;
-  /** Horizontal overhang past the outer plate face, mm. */
-  overhangMm: number;
-  birdsmouth: BirdsmouthInput;
-};
-
-export type BirdsmouthResult = {
-  seatMm: number;
-  /** Vertical heel height of the birdsmouth. */
-  heelMm: number;
-  /** Plumb cut depth of the birdsmouth (along rafter face). */
-  plumbMm: number;
-  /** Timber left above the birdsmouth (depth − heel). */
-  remainingDepthMm: number;
-  /** True when heel would exceed rafter depth. */
-  overcut: boolean;
-};
-
-export type CommonRafterResult = {
-  pitchDegrees: number;
-  /** Half-span run to ridge centreline, mm. */
-  runMm: number;
-  riseMm: number;
-  /** Slope length plate centreline to ridge, mm. */
-  slopeLengthMm: number;
-  /** Slope length including overhang past the plate, mm. */
-  totalLengthMm: number;
-  /** Rise:run expressed as rise per 300 mm run (common AU framing square). */
-  risePer300: number;
-  plumbCutDegrees: number;
-  levelCutDegrees: number;
-  birdsmouth: BirdsmouthResult;
-};
-
-export type HipValleyKind = "hip" | "valley";
-
-export type HipValleyInput = {
-  kind: HipValleyKind;
-  /** Common half-span run (same as common rafter run), mm. */
-  runMm: number;
-  pitch: PitchInput;
-  overhangMm: number;
-  /** Plan corner angle in degrees (90 for square hip/valley). */
-  planCornerDegrees: number;
-};
-
-export type HipValleyResult = {
-  kind: HipValleyKind;
-  pitchDegrees: number;
-  commonPitchDegrees: number;
-  /** Plan run of the hip/valley (bisected corner), mm. */
-  planRunMm: number;
-  riseMm: number;
-  /** True hip/valley pitch (shallower than common). */
-  hipPitchDegrees: number;
-  slopeLengthMm: number;
-  totalLengthMm: number;
-  /** Backing / bevel angle on the top edge, degrees. */
-  backingDegrees: number;
-  /** Side cut (edge bevel) at the ridge, degrees. */
-  sideCutDegrees: number;
-  plumbCutDegrees: number;
-  levelCutDegrees: number;
-};
-
-export type CreeperInput = {
-  /** Half-span run of the main roof, mm. */
-  runMm: number;
-  pitch: PitchInput;
-  /** Centres along the wall plate, mm. */
-  centresMm: number;
-  /** Distance from corner / first creeper offset along plate, mm. */
-  firstOffsetMm: number;
-  overhangMm: number;
-  /** Rafter thickness for hip/valley cheek allowance, mm. */
-  hipThicknessMm: number;
-};
-
-export type CreeperMember = {
-  index: number;
-  /** Mark from corner along the wall plate, mm. */
-  plateMarkMm: number;
-  /** Remaining common run to the hip, mm. */
-  remainingRunMm: number;
-  slopeLengthMm: number;
-  totalLengthMm: number;
-};
-
-export type CreeperResult = {
-  pitchDegrees: number;
-  /**
-   * Common difference — incremental decrease in creeper slope length
-   * per bay (centres / cos(pitch)). Hero Pro result.
-   */
-  commonDifferenceMm: number;
-  /** @deprecated Prefer commonDifferenceMm — same value. */
-  reductionPerBayMm: number;
-  members: CreeperMember[];
-  count: number;
-};
-
-/** Rectangular gable roof end set-out (free). */
-export type GableEndsInput = {
-  /** Wall-plate to wall-plate span, mm. */
-  spanMm: number;
-  /** Building length along the ridge (plate length), mm. */
+export type RoofInputs = {
+  /** Building length along the ridge, millimetres (outside of plates). */
   lengthMm: number;
-  pitch: PitchInput;
-  /** Horizontal barge / rake overhang past the gable end, mm. */
-  bargeOverhangMm: number;
+  /** Building width / span, millimetres (outside of plates). */
+  widthMm: number;
+  /** Roof pitch in degrees. */
+  pitchDeg: number;
+  leftEnd: EndType;
+  rightEnd: EndType;
+  rafter: Member;
+  ridge: Member;
+  hip: Member;
+  /** Wall plate width the birdsmouth sits on (typically 90). */
+  plateWidthMm: number;
+  spacingMm: SpacingMm;
+  /** Horizontal eaves overhang past the plate, millimetres. */
+  overhangMm: number;
+  junction: Junction;
+  /** Wing span (width) for an intersecting roof, millimetres. */
+  wingSpanMm: number;
+  /** How far the wing projects from the main wall, millimetres. */
+  wingProjectionMm: number;
+  /** Outer end of the intersecting roof. */
+  wingEnd: EndType;
+  covering: Covering;
 };
 
-export type GableEndsResult = {
-  pitchDegrees: number;
-  runMm: number;
+export type Creeper = {
+  index: number;
+  /** Distance from the hip corner along the plate, mm. */
+  fromCornerMm: number;
+  /** Length from birdsmouth plumb to hip cheek, mm. */
+  toBirdsmouthMm: number;
+  /** Overall length including eaves overhang, mm. */
+  overallMm: number;
+  hand: "left" | "right";
+};
+
+export type Bevels = {
+  /** Face plumb cut, degrees. */
+  plumb: number;
+  /** Level / seat cut, degrees. */
+  seat: number;
+  /** Side / cheek cut of a creeper (jack) measured on the edge, degrees. */
+  sideCut: number;
+  /** Hip/valley cheek cut on the edge at the ridge, degrees. */
+  hipSideCut: number;
+  /** Circular-saw blade tilt for a compound cheek, degrees. */
+  sawBevel: number;
+  /** Hip backing (bevel the top edges into the roof plane), degrees. */
+  backing: number;
+  /** Hip pitch — the shallower plumb of the hip/valley, degrees. */
+  hipPitch: number;
+};
+
+export type Birdsmouth = {
+  seatMm: number;
+  plumbDepthMm: number;
+  maxPlumbMm: number;
+  remainingDepthMm: number;
+  minSeatMm: number;
+  limitedByCode: boolean;
+  ok: boolean;
+  note: string;
+};
+
+export type MemberCut = {
+  name: string;
+  count: number;
+  toBirdsmouthMm: number;
+  overallMm: number;
+  stockMm: number;
+  notes: string;
+};
+
+export type RoofResult = {
+  pitchDeg: number;
+  pitchRad: number;
+  halfSpanMm: number;
+  commonRunMm: number;
   riseMm: number;
-  /** Common rafter slope to ridge (no overhang). */
-  commonSlopeMm: number;
-  /** Ridge board length ≈ building length. */
+  risePerMetreMm: number;
+  commonToBirdsmouthMm: number;
+  commonOverhangMm: number;
+  commonOverallMm: number;
+  /** Hypotenuse of the pitch triangle, to the centre of the ridge. Overhang not included. */
+  geometricalCommonMm: number;
+  /** Geometrical length less half the ridge thickness (square off the plumb). */
+  cuttingCommonMm: number;
+  hipRunMm: number;
+  hipToBirdsmouthMm: number;
+  hipOverhangMm: number;
+  hipOverallMm: number;
+  valleyToBirdsmouthMm: number;
+  valleyOverhangMm: number;
+  valleyOverallMm: number;
   ridgeLengthMm: number;
-  /** Barge / rake length including overhang. */
-  bargeLengthMm: number;
-  plumbCutDegrees: number;
-  levelCutDegrees: number;
-  risePer300: number;
-};
-
-/** L or T plan junction (Pro) — equal or unequal pitch at the join. */
-export type JunctionKind = "equal-hip" | "equal-valley" | "unequal-pitch";
-
-export type LtPlanShape = "L" | "T";
-
-export type JunctionInput = {
-  kind: JunctionKind;
-  planShape: LtPlanShape;
-  mainPitch: PitchInput;
-  secondaryPitch?: PitchInput;
-  mainRunMm: number;
-  secondaryRunMm?: number;
-  planCornerDegrees: number;
-};
-
-export type JunctionResult = {
-  kind: JunctionKind;
-  planShape: LtPlanShape;
-  mainPitchDegrees: number;
-  secondaryPitchDegrees: number | null;
-  bisectPlanDegrees: number;
-  /** Intersection member pitch (hip/valley/mitre), degrees. */
-  junctionPitchDegrees: number;
-  planRunMm: number;
-  slopeLengthFactor: number;
-  notes: string[];
+  ridgeWithOverhangMm: number;
+  ridgeHeightAbovePlateMm: number;
+  hipCount: number;
+  valleyCount: number;
+  commonCount: number;
+  vergeCount: number;
+  crownEndCount: number;
+  centeringCount: number;
+  commonDifferenceMm: number;
+  hipDeductionMm: number;
+  creepers: Creeper[];
+  creeperPerHipCorner: number;
+  brokenHipCount: number;
+  valleyJackCount: number;
+  crippleJackCount: number;
+  minorRidgeLengthMm: number;
+  endJackCuttingMm: number;
+  bevels: Bevels;
+  birdsmouth: Birdsmouth;
+  cuttingList: MemberCut[];
+  pyramid: boolean;
+  warnings: string[];
 };

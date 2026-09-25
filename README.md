@@ -1,8 +1,8 @@
 # AU Roof Carpenter
 
-Offline roof set-out for Australian carpenters — **gable ends**, **common rafter / birdsmouth**, **hip & valley**, **creepers**, and **L/T junctions**.
+Offline roof set-out for Australian carpenters. One **Roof Setout** screen: length, width, pitch, hip or gable ends, rafters, hips, valleys, creepers and L/T junctions together.
 
-This is a **Capacitor + Vite + React + TypeScript SPA**. Web assets bundle into the native shells so every tool works **offline**. No login, no cloud database, no ads.
+This is a **Capacitor + Vite + React + TypeScript SPA**. Web assets bundle into the native shells so set-out works **offline**. No login, no cloud database, no ads.
 
 | | |
 | --- | --- |
@@ -18,25 +18,28 @@ This is a **Capacitor + Vite + React + TypeScript SPA**. Web assets bundle into 
 
 Public surfaces use **Australian Dynamics** and **australiancomsnetwork@gmail.com** only — no personal names or personal emails.
 
-## Tools
+## Set-out
 
-1. **Gable ends** (free) — rise, ridge length, barge/rake on a rectangular gable.
-2. **Common rafter** (free) — span, pitch (degrees or rise:run), overhang, birdsmouth seat / heel / remaining depth, plumb & level cuts.
-3. **Hip set-out** (Pro) — equal-pitch plan run, hip pitch, slope length, backing and side cuts.
-4. **Creeper schedule** (Pro) — common difference (hero), plate marks, cutting list and job-level material order.
-5. **L / T junctions** (Pro) — equal hip/valley or unequal-pitch joins on an L or T plan.
+The home screen is one workspace (inputs, roof diagram, results). It is not a menu of separate calculators.
 
-Skillion is **not** in this build (not claimed, not gated).
+| On the same screen | |
+| --- | --- |
+| Free | Common rafter, birdsmouth, ridge / gable lengths, common plumb and seat |
+| Pro overlay — hip | Hip length, hip and creeper bevels, hip set-out drawing |
+| Pro overlay — creeper | Common difference, hip jack table, cutting list |
+| Pro overlay — junction | Valley lengths and L/T counts |
 
-Product maths live in `src/lib/roof` (geometry, junction, types, tests). UI in `src/components/roof`.
+Each Pro section can be previewed once on the device. After that preview, the section stays behind the unlock overlay until `roof_setout_pro_unlock`. Skillion is **not** in this build (not claimed, not gated).
+
+Geometry is the Grok calculator in `src/lib/roof`. The screen is `src/pages/RoofSetoutPage.tsx` plus `src/components/roof`.
 
 ## Pricing (freemium split)
 
 | | |
 | --- | --- |
-| Free forever | Gable ends, common rafter, birdsmouth |
-| One free calculation each | Hip set-out, creeper schedule (common difference, cutting list, material order), L/T junctions |
-| Paid unlock | Same **$39.99 AUD** one-time purchase unlocks all Pro tools |
+| Free forever | Common rafter, birdsmouth, ridge / gable lengths on the one screen |
+| One free preview each | Hip set-out, creeper schedule (common difference, cutting list), L/T junctions — overlay on that same screen |
+| Paid unlock | Same **$39.99 AUD** one-time purchase unlocks all Pro sections |
 | Product id | `roof_setout_pro_unlock` (non-consumable / managed product) |
 
 Native Android and iOS builds use **[@capgo/native-purchases](https://github.com/Cap-go/capacitor-native-purchases)** (Play Billing + StoreKit 2). A successful purchase or restore caches `localStorage` key `roof-setout-au.unlock.v1`. Free-use counters use `roof-setout-au.free-uses.v1`.
