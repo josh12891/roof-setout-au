@@ -24,7 +24,7 @@ export function RoofSetoutPage() {
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-5 sm:flex-row sm:items-end sm:justify-between sm:px-6">
           <div>
             <p className="text-[11px] font-medium tracking-[0.2em] text-accent uppercase">
-              Australian carpentry
+              Australian carpentry · Pitched roof
             </p>
             <h1 className="mt-1 font-sans text-3xl font-medium tracking-tight sm:text-4xl">
               Roof Setout
@@ -50,6 +50,9 @@ export function RoofSetoutPage() {
                   Pro · {priceLabel}
                 </a>
               )}
+              <Link to="/" className="font-medium text-accent underline-offset-2 hover:underline">
+                Flat or pitched
+              </Link>
               <Link to="/about" className="font-medium text-accent underline-offset-2 hover:underline">
                 About
               </Link>

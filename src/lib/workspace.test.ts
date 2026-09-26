@@ -10,9 +10,12 @@ function read(rel: string) {
 }
 
 describe("single roof set-out workspace", () => {
-  it("keeps the home route on one Roof Setout screen", () => {
+  it("opens on a flat or pitched choice and does not restore the five-tool home", () => {
     const app = read("src/App.tsx");
-    expect(app).toContain("RoofSetoutPage");
+    const choice = read("src/pages/RoofChoicePage.tsx");
+    expect(app).toContain('path="/" element={<RoofChoicePage />}');
+    expect(app).toContain('path="/flat" element={<FlatRoofPage />}');
+    expect(app).toContain('path="/pitched" element={<RoofSetoutPage />}');
     expect(app).not.toContain("HomePage");
     expect(app).not.toContain("GableEndsTool");
     expect(app).not.toContain("CreeperTool");
@@ -21,6 +24,26 @@ describe("single roof set-out workspace", () => {
     expect(app).not.toContain('path="/creeper"');
     expect(app).not.toContain('path="/junction"');
     expect(app).not.toContain('path="/common"');
+    expect(choice).toContain("Flat roof");
+    expect(choice).toContain("Pitched roof");
+    expect(choice).toContain('to="/flat"');
+    expect(choice).toContain('to="/pitched"');
+    expect(choice).not.toContain("Gable ends");
+    expect(choice).not.toContain("Creeper schedule");
+    expect(choice).not.toContain("Hip set-out");
+    expect(choice).not.toContain("Common rafter");
+    expect(choice).not.toContain("L / T junctions");
+  });
+
+  it("keeps pitched set-out as the one Grok workspace", () => {
+    const page = read("src/pages/RoofSetoutPage.tsx");
+    expect(page).toContain("Roof Setout");
+    expect(page).toContain("InputsPanel");
+    expect(page).toContain("ResultsPanel");
+    expect(page).toContain('to="/"');
+    expect(read("src/components/roof/results-panel.tsx")).toContain("ProSection");
+    expect(read("src/components/roof/inputs-panel.tsx")).toContain("L-shape");
+    expect(read("src/components/roof/inputs-panel.tsx")).toContain("T-shape");
   });
 
   it("keeps store identity and the Pro product id", () => {

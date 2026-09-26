@@ -1,9 +1,9 @@
 {
   "name": "roof-setout-au",
   "private": true,
-  "version": "1.0.3",
+  "version": "1.0.4",
   "type": "module",
-    "description": "AU Roof Carpenter — one Roof Setout screen for Australian carpenters: rafters, hips, creepers.",
+    "description": "AU Roof Carpenter — flat rafters or pitched Roof Setout for Australian carpenters.",
   "scripts": {
     "dev": "vite",
     "build": "node scripts/sync-privacy-docs.mjs && tsc -b && vite build",

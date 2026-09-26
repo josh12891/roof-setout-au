@@ -21,9 +21,9 @@ export function AboutPage() {
         </CardHeader>
         <div className="space-y-3 text-sm text-muted">
           <p>
-            One Roof Setout screen for length, width, pitch, hip or gable ends, rafters, creepers
-            and L/T junctions. No login, no cloud database, no ads. Calculations stay on this
-            device.
+            Choose flat or pitched first. Flat is rafters only. Pitched is one Roof Setout screen
+            for length, width, pitch, hip or gable ends, rafters, creepers and L/T junctions. No
+            login, no cloud database, no ads. Calculations stay on this device.
           </p>
           <p>
             Bundle id <code className="text-ink">com.josh12891.roofsetout</code>. Pro unlock product{" "}
