@@ -2,12 +2,12 @@
   "appId": "com.josh12891.roofsetout",
   "appName": "AU Roof Carpenter",
   "webDir": "dist",
-  "backgroundColor": "#d9e2e8",
+  "backgroundColor": "#f3efe4",
   "android": {
-    "backgroundColor": "#d9e2e8"
+    "backgroundColor": "#f3efe4"
   },
   "ios": {
-    "backgroundColor": "#d9e2e8",
+    "backgroundColor": "#f3efe4",
     "contentInset": "automatic",
     "preferredContentMode": "mobile"
   },
@@ -15,7 +15,7 @@
     "SplashScreen": {
       "launchShowDuration": 1200,
       "launchAutoHide": true,
-      "backgroundColor": "#d9e2e8",
+      "backgroundColor": "#f3efe4",
       "androidScaleType": "CENTER_CROP",
       "showSpinner": false,
       "splashFullScreen": true,
@@ -23,7 +23,7 @@
     },
     "StatusBar": {
       "style": "DARK",
-      "backgroundColor": "#d9e2e8"
+      "backgroundColor": "#f3efe4"
     }
   }
 }

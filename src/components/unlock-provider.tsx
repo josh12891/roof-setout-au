@@ -85,6 +85,10 @@ type UnlockContextValue = {
   freeUsesConsumed: FreeUseCounts;
   canCalculateTool: (id: ToolId) => boolean;
   consumeToolFreeUse: (id: PaidToolId) => boolean;
+  /** Paid section is visible: purchased, TestFlight, or this session's one preview. */
+  isSectionOpen: (id: PaidToolId) => boolean;
+  /** Spend the one free preview and keep that section open until the app reloads. */
+  previewSection: (id: PaidToolId) => boolean;
   kind: BillingKind;
   priceLabel: string;
   busy: boolean;
@@ -110,6 +114,7 @@ export function UnlockProvider({ children }: { children: ReactNode }) {
   const [kind, setKind] = useState<BillingKind>("stub");
   const [priceLabel, setPriceLabel] = useState(UNLOCK_PRICE_LABEL);
   const [busy, setBusy] = useState(false);
+  const [sessionPreview, setSessionPreview] = useState<Partial<Record<PaidToolId, boolean>>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -176,6 +181,24 @@ export function UnlockProvider({ children }: { children: ReactNode }) {
     return consumed;
   }, []);
 
+  const isSectionOpen = useCallback(
+    (id: PaidToolId) => unlocked || Boolean(sessionPreview[id]),
+    [sessionPreview, unlocked],
+  );
+
+  const previewSection = useCallback(
+    (id: PaidToolId) => {
+      if (unlocked || sessionPreview[id]) return true;
+      if (!canUseTool(id, false, freeUsesConsumed)) return false;
+      const consumed = consumeFreeUse(id);
+      emit();
+      if (!consumed) return false;
+      setSessionPreview((current) => ({ ...current, [id]: true }));
+      return true;
+    },
+    [freeUsesConsumed, sessionPreview, unlocked],
+  );
+
   const footnote = billingFootnote(kind, billing.platformName);
 
   const value = useMemo(
@@ -187,6 +210,8 @@ export function UnlockProvider({ children }: { children: ReactNode }) {
       freeUsesConsumed,
       canCalculateTool,
       consumeToolFreeUse,
+      isSectionOpen,
+      previewSection,
       kind,
       priceLabel,
       busy,
@@ -200,6 +225,8 @@ export function UnlockProvider({ children }: { children: ReactNode }) {
       complimentaryUnlock,
       consumeToolFreeUse,
       distributionChannel,
+      isSectionOpen,
+      previewSection,
       footnote,
       freeUsesConsumed,
       kind,
