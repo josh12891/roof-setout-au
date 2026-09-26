@@ -17,6 +17,8 @@ describe("Play release AAB wiring", () => {
     const strings = read("android/app/src/main/res/values/strings.xml");
     const bundleScript = read("scripts/android-bundle-release.sh");
     expect(cap.appId).toBe("com.josh12891.roofsetout");
+    expect(gradle).toContain("versionCode 3");
+    expect(gradle).toContain('versionName "1.0.2"');
     expect(gradle).toContain('applicationId "com.josh12891.roofsetout"');
     expect(gradle).toContain('namespace "com.josh12891.roofsetout"');
     expect(strings).toContain("com.josh12891.roofsetout");

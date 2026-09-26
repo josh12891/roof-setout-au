@@ -196,10 +196,10 @@ export function InputsPanel() {
       {s.junction !== "none" ? (
         <>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Wing span" hint="metres">
+            <Field label="Wing width/span" hint="across the wing, metres">
               <MetreField mm={s.wingSpanMm} onMm={s.setWingSpan} />
             </Field>
-            <Field label="Wing projection" hint="metres">
+            <Field label="Wing length" hint="out from the main wall, metres">
               <MetreField mm={s.wingProjectionMm} onMm={s.setWingProjection} />
             </Field>
           </div>

@@ -15,6 +15,7 @@ This is a **Capacitor + Vite + React + TypeScript SPA**. Web assets bundle into 
 | Privacy policy (Play + App Store Connect) | **https://josh12891.github.io/roof-setout-au/privacy.html** |
 | IAP product id | `roof_setout_pro_unlock` |
 | IAP price | **$39.99 AUD** one-time (placeholder — not a subscription) |
+| Store version | Marketing **1.0.2** (patch above shipping 1.0.1 so this L/T cutting-list fix is a distinct store build). Android `versionCode` **3**. iOS `CFBundleVersion` **3**. |
 
 Public surfaces use **Australian Dynamics** and **australiancomsnetwork@gmail.com** only — no personal names or personal emails.
 

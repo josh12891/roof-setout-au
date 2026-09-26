@@ -343,7 +343,7 @@ export function junctionLayout(inputs: RoofInputs): JunctionLayout | null {
       y1: projY,
       x2: 0,
       y2: projY,
-      label: "projection",
+      label: "wing length",
       valueMm: P,
     },
     {
@@ -351,7 +351,7 @@ export function junctionLayout(inputs: RoofInputs): JunctionLayout | null {
       y1: y0,
       x2: wingOuterX - O - dimOff,
       y2: y1,
-      label: "wing span",
+      label: "wing width/span",
       valueMm: S,
     },
     {

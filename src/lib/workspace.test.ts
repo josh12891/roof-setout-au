@@ -30,4 +30,14 @@ describe("single roof set-out workspace", () => {
     expect(read("src/lib/unlock.ts")).toContain('UNLOCK_PRODUCT_ID = "roof_setout_pro_unlock"');
     expect(read("src/pages/RoofSetoutPage.tsx")).toContain("Roof Setout");
   });
+
+  it("names the L/T wing fields width/span and length", () => {
+    const inputs = read("src/components/roof/inputs-panel.tsx");
+    expect(inputs).toContain('label="Wing width/span"');
+    expect(inputs).toContain('label="Wing length"');
+    expect(inputs).not.toContain('label="Wing span"');
+    expect(inputs).not.toContain('label="Wing projection"');
+    expect(read("src/components/roof/results-panel.tsx")).toContain("Main roof members");
+    expect(read("src/components/roof/results-panel.tsx")).toContain("wing roof members");
+  });
 });

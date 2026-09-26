@@ -80,11 +80,11 @@ test("T-junction plan carries overall, projection and wing-span dims", () => {
   const j = junctionLayout(T);
   assert.ok(j);
   const names = j.dims.map((d) => d.label);
-  for (const n of ["span", "long", "projection", "wing span", "overall"]) {
+  for (const n of ["span", "long", "wing length", "wing width/span", "overall"]) {
     assert.ok(names.includes(n), `missing dim ${n}`);
   }
-  assert.equal(j.dims.find((d) => d.label === "projection")?.valueMm, 4000);
-  assert.equal(j.dims.find((d) => d.label === "wing span")?.valueMm, 5000);
+  assert.equal(j.dims.find((d) => d.label === "wing length")?.valueMm, 4000);
+  assert.equal(j.dims.find((d) => d.label === "wing width/span")?.valueMm, 5000);
   assert.equal(j.valleys.length, 2);
   assert.ok(j.minorRidge);
   const ridgeRun = Math.hypot(j.minorRidge.x2 - j.minorRidge.x1, j.minorRidge.y2 - j.minorRidge.y1);

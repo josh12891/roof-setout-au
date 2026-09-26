@@ -173,13 +173,7 @@ function IsoView({ inputs, result }: { inputs: RoofInputs; result: RoofResult })
     let brokenHipPaths: string[] = [];
     let minorRidgePath = "";
     let nearHip: P3[] | null = leftHip ? [FL, FR, R0] : null;
-    const farHip: P3[] | null = rightHip ? [BL, BR, R1] : null;
-
-    const ridgeAtY = (y: number): P3 => ({
-      x: W / 2,
-      y: Math.max(yR0, Math.min(yR1, y)),
-      z: rZ,
-    });
+    let farHip: P3[] | null = rightHip ? [BL, BR, R1] : null;
 
     if (!jn) {
       frontPolys.push([FL, BL, R1, R0]);
@@ -188,6 +182,8 @@ function IsoView({ inputs, result }: { inputs: RoofInputs; result: RoofResult })
       if (leftHip) hips.push(line(I(FL), I(R0)), line(I(FR), I(R0)));
       if (rightHip) hips.push(line(I(BL), I(R1)), line(I(BR), I(R1)));
     } else {
+      // L/T isometric: main faces stop at the wing, wing faces stay on the wing.
+      // No rafter hatching and no labels — those stacked on the valleys.
       const y0 = jn.y0;
       const y1 = jn.y1;
       const cy = jn.cy;
@@ -203,50 +199,89 @@ function IsoView({ inputs, result }: { inputs: RoofInputs; result: RoofResult })
         y: cy,
         z: mZ,
       };
-      const Ve0: P3 = { x: 0, y: y0, z: eZ };
-      const Ve1: P3 = { x: 0, y: y1, z: eZ };
       const J0: P3 = jn.junctionPts[0]
         ? { x: jn.junctionPts[0].x, y: jn.junctionPts[0].y, z: jZ }
         : { x: W / 2, y: cy, z: rZ };
       const J1: P3 = jn.junctionPts[1]
         ? { x: jn.junctionPts[1].x, y: jn.junctionPts[1].y, z: jZ }
         : J0;
-      const minorEnd: P3 = jn.equalSpan ? { x: W / 2, y: cy, z: rZ } : { x: (J0.x + J1.x) / 2, y: cy, z: jZ };
+      const minorEnd: P3 = jn.equalSpan
+        ? { x: W / 2, y: cy, z: rZ }
+        : { x: (J0.x + J1.x) / 2, y: cy, z: jZ };
 
-      if (jn.flushNearEnd) {
-        frontPolys.push([Ve1, BL, R1, ridgeAtY(y1)]);
-        wallLeftPolys.push([
-          { x: 0, y: y1, z: 0 },
-          wBL,
-          tBL,
-          { x: 0, y: y1, z: wall },
+      const pushLeftSlope = (ya: number, yb: number) => {
+        if (yb - ya < 40) return;
+        frontPolys.push([
+          { x: -O, y: ya, z: eZ },
+          { x: -O, y: yb, z: eZ },
+          { x: W / 2, y: yb, z: rZ },
+          { x: W / 2, y: ya, z: rZ },
         ]);
-        eaves.push(line(I(Ve1), I(BL)));
-        if (leftHip) {
-          nearHip = [
-            { x: 0, y: -O, z: eZ },
-            FR,
-            R0,
-          ];
-          hips.push(line(I(FR), I(R0)));
+        eaves.push(line(I({ x: -O, y: ya, z: eZ }), I({ x: -O, y: yb, z: eZ })));
+      };
+      if (y0 > yR0 + 40) pushLeftSlope(yR0, Math.min(y0, yR1));
+      if (y1 < yR1 - 40) pushLeftSlope(Math.max(y1, yR0), yR1);
+
+      // Clip hip caps against the wing eaves so the triangle does not run
+      // through the wing. A full cap is kept only when the wing is clear of it.
+      const crossY = (a: P3, b: P3, y: number): P3 => {
+        const dy = b.y - a.y;
+        const t = Math.abs(dy) < 1e-6 ? 0 : (y - a.y) / dy;
+        return { x: a.x + (b.x - a.x) * t, y, z: a.z + (b.z - a.z) * t };
+      };
+      const clipY = (poly: P3[], keep: (y: number) => boolean, yPlane: number): P3[] => {
+        const out: P3[] = [];
+        for (let i = 0; i < poly.length; i++) {
+          const a = poly[i];
+          const b = poly[(i + 1) % poly.length];
+          const ain = keep(a.y);
+          const bin = keep(b.y);
+          if (ain && bin) out.push(b);
+          else if (ain && !bin) out.push(crossY(a, b, yPlane));
+          else if (!ain && bin) {
+            out.push(crossY(a, b, yPlane));
+            out.push(b);
+          }
         }
-      } else {
-        frontPolys.push([FL, { x: -O, y: y0, z: eZ }, ridgeAtY(y0), R0]);
-        frontPolys.push([{ x: -O, y: y1, z: eZ }, BL, R1, ridgeAtY(y1)]);
-        if (y0 > 40) {
-          wallLeftPolys.push([wFL, { x: 0, y: y0, z: 0 }, { x: 0, y: y0, z: wall }, tFL]);
-          eaves.push(line(I(FL), I({ x: -O, y: y0, z: eZ })));
-        }
-        wallLeftPolys.push([
-          { x: 0, y: y1, z: 0 },
-          wBL,
-          tBL,
-          { x: 0, y: y1, z: wall },
-        ]);
-        eaves.push(line(I({ x: -O, y: y1, z: eZ }), I(BL)));
-        if (leftHip) hips.push(line(I(FL), I(R0)), line(I(FR), I(R0)));
+        return out;
+      };
+      const tallEnough = (poly: P3[]) => {
+        if (poly.length < 3) return false;
+        const ys = poly.map((p) => p.y);
+        return Math.max(...ys) - Math.min(...ys) > 80;
+      };
+
+      nearHip = null;
+      farHip = null;
+      if (leftHip) {
+        const yCut = y0 - O;
+        const clipped = clipY([FL, FR, R0], (y) => y <= yCut + 1, yCut);
+        if (tallEnough(clipped)) nearHip = clipped;
+        hips.push(line(I(FR), I(R0)));
+        if (R0.y <= yCut + 1) hips.push(line(I(FL), I(R0)));
+        else if (yCut > FL.y + 40) hips.push(line(I(FL), I(crossY(FL, R0, yCut))));
       }
-      if (rightHip) hips.push(line(I(BL), I(R1)), line(I(BR), I(R1)));
+      if (rightHip) {
+        const yCut = y1 + O;
+        const clipped = clipY([BL, BR, R1], (y) => y >= yCut - 1, yCut);
+        if (tallEnough(clipped)) farHip = clipped;
+        hips.push(line(I(BR), I(R1)));
+        if (R1.y >= yCut - 1) hips.push(line(I(BL), I(R1)));
+        else if (yCut < BL.y - 40) hips.push(line(I(crossY(R1, BL, yCut)), I(BL)));
+      }
+      if (!leftHip && y0 > 40) {
+        wallLeftPolys.push([wFL, { x: 0, y: y0, z: 0 }, { x: 0, y: y0, z: wall }, tFL]);
+        eaves.push(line(I(FL), I({ x: -O, y: Math.min(y0, L), z: eZ })));
+      }
+      if (y1 < L - 40) {
+        wallLeftPolys.push([
+          { x: 0, y: y1, z: 0 },
+          wBL,
+          tBL,
+          { x: 0, y: y1, z: wall },
+        ]);
+        if (!rightHip) eaves.push(line(I({ x: -O, y: y1, z: eZ }), I(BL)));
+      }
 
       extraWalls.push(
         [
@@ -269,47 +304,49 @@ function IsoView({ inputs, result }: { inputs: RoofInputs; result: RoofResult })
         ],
       );
 
+      const nearWallEave = { x: 0, y: y0 - O, z: eZ };
+      const farWallEave = { x: 0, y: y1 + O, z: eZ };
       if (jn.wingHipped) {
         wingPlanes.push([WN, WF, mR]);
         hips.push(line(I(WN), I(mR)), line(I(WF), I(mR)));
-      } else {
-        wingPlanes.push([WN, WF, mR]);
       }
-      if (jn.flushNearEnd) {
-        wingPlanes.push([WN, { x: 0, y: -O, z: eZ }, mR]);
-        wingPlanes.push([WF, Ve1, J0, mR]);
+      wingPlanes.push([WN, nearWallEave, mR]);
+      wingPlanes.push([WF, farWallEave, mR]);
+      if (jn.kind === "L") {
+        wingPlanes.push([mR, { x: 0, y: y1, z: eZ }, J0]);
       } else {
-        wingPlanes.push([WN, Ve0, J0, mR]);
-        wingPlanes.push([WF, Ve1, J1, mR]);
+        wingPlanes.push([mR, { x: 0, y: y0, z: eZ }, J0]);
+        wingPlanes.push([mR, { x: 0, y: y1, z: eZ }, J1]);
       }
 
-      minorRidgePath = line(I(mR), I(minorEnd));
-      if (jn.kind === "L") {
-        valleyPaths = [line(I(Ve1), I(J0))];
-      } else {
-        valleyPaths = [line(I(Ve0), I(J0)), line(I(Ve1), I(J1))];
+      if (Math.hypot(minorEnd.x - mR.x, minorEnd.y - mR.y) > 40) {
+        minorRidgePath = line(I(mR), I(minorEnd));
       }
-      brokenHipPaths = jn.brokenHips.map((s) => {
-        const a = { x: s.x1, y: s.y1, z: jZ };
-        const b = { x: s.x2, y: s.y2, z: rZ };
-        return line(I(a), I(b));
-      });
-      eaves.push(line(I(WN), I(WF)), line(I(WN), I({ x: 0, y: y0 - O, z: eZ })), line(I(WF), I({ x: 0, y: y1 + O, z: eZ })));
+      valleyPaths = jn.valleys.map((s) =>
+        line(I({ x: s.x1, y: s.y1, z: eZ }), I({ x: s.x2, y: s.y2, z: jZ })),
+      );
+      brokenHipPaths = jn.brokenHips.map((s) =>
+        line(I({ x: s.x1, y: s.y1, z: jZ }), I({ x: s.x2, y: s.y2, z: rZ })),
+      );
+      eaves.push(
+        line(I(WN), I(WF)),
+        line(I(WN), I(nearWallEave)),
+        line(I(WF), I(farWallEave)),
+      );
     }
 
     const rafters: string[] = [];
-    const step = inputs.spacingMm;
-    const ySkip0 = jn?.y0 ?? -1e9;
-    const ySkip1 = jn?.y1 ?? -1e9;
-    for (let y = step; y < L; y += step) {
-      if (jn && y > ySkip0 + 8 && y < ySkip1 - 8) continue;
-      const atHipNear = leftHip && y < g.half;
-      const atHipFar = rightHip && y > L - g.half;
-      const xInner = atHipNear ? y : atHipFar ? L - y : 0;
-      const t = (xInner + O) / (W / 2 + O);
-      const z0 = eZ + t * (rZ - eZ);
-      const x0 = -O + t * (W / 2 + O);
-      rafters.push(line(I({ x: -O, y, z: eZ }), I({ x: x0, y, z: z0 })));
+    if (!jn) {
+      const step = inputs.spacingMm;
+      for (let y = step; y < L; y += step) {
+        const atHipNear = leftHip && y < g.half;
+        const atHipFar = rightHip && y > L - g.half;
+        const xInner = atHipNear ? y : atHipFar ? L - y : 0;
+        const t = (xInner + O) / (W / 2 + O);
+        const z0 = eZ + t * (rZ - eZ);
+        const x0 = -O + t * (W / 2 + O);
+        rafters.push(line(I({ x: -O, y, z: eZ }), I({ x: x0, y, z: z0 })));
+      }
     }
 
     const frontPts = frontPolys.flatMap((p) => p.map(I));
