@@ -1,6 +1,6 @@
 # AU Roof Carpenter
 
-Offline roof set-out for Australian carpenters. One **Roof Setout** screen: length, width, pitch, hip or gable ends, rafters, hips, valleys, creepers and L/T junctions together.
+Offline roof set-out for Australian carpenters. The first screen is a **Flat roof** / **Pitched roof** choice. Flat is rafters only. Pitched opens one **Roof Setout** screen: length, width, pitch, hip or gable ends, rafters, hips, valleys, creepers and L/T junctions together.
 
 This is a **Capacitor + Vite + React + TypeScript SPA**. Web assets bundle into the native shells so set-out works **offline**. No login, no cloud database, no ads.
 
@@ -15,24 +15,29 @@ This is a **Capacitor + Vite + React + TypeScript SPA**. Web assets bundle into 
 | Privacy policy (Play + App Store Connect) | **https://josh12891.github.io/roof-setout-au/privacy.html** |
 | IAP product id | `roof_setout_pro_unlock` |
 | IAP price | **$39.99 AUD** one-time (placeholder — not a subscription) |
-| Store version | Marketing **1.0.3** (patch above 1.0.2 so the broken-hip jack infill is a distinct store build, not another 1.0.2). Android `versionCode` **4**. iOS `CFBundleVersion` **4**. |
+| Store version | Marketing **1.0.4** (above the broken-hip infill build 1.0.3 / code 4). Android `versionCode` **5**. iOS `CFBundleVersion` **5**. |
 
 Public surfaces use **Australian Dynamics** and **australiancomsnetwork@gmail.com** only — no personal names or personal emails.
 
 ## Set-out
 
-The home screen is one workspace (inputs, roof diagram, results). It is not a menu of separate calculators.
+The first screen asks **Flat roof** or **Pitched roof**. It is not the old five-tool menu (gable, common, hip, creeper, L/T as separate cards).
 
-| On the same screen | |
+| Choice | What you get |
+| --- | --- |
+| Flat roof | Level rafters only: length, span, 450/600 centres, eaves each side, member size, count and stock. A span-table note stays on the screen — the app does not size the timber. |
+| Pitched roof | The one Roof Setout workspace (inputs, roof diagram, results): hips, valleys, creepers, broken-hip jacks, L/T junctions, cutting list, freemium overlay. |
+
+| On the pitched screen | |
 | --- | --- |
 | Free | Common rafter, birdsmouth, ridge / gable lengths, common plumb and seat |
 | Pro overlay — hip | Hip length, hip and creeper bevels, hip set-out drawing |
 | Pro overlay — creeper | Common difference, hip jack table, cutting list |
 | Pro overlay — junction | Valley lengths and L/T counts |
 
-Each Pro section can be previewed once on the device. After that preview, the section stays behind the unlock overlay until `roof_setout_pro_unlock`. Skillion is **not** in this build (not claimed, not gated).
+Each Pro section can be previewed once on the device. After that preview, the section stays behind the unlock overlay until `roof_setout_pro_unlock`. The flat path is not behind that overlay. Skillion is **not** in this build (not claimed, not gated).
 
-Geometry is the Grok calculator in `src/lib/roof`. The screen is `src/pages/RoofSetoutPage.tsx` plus `src/components/roof`.
+Pitched geometry is the Grok calculator in `src/lib/roof`. That screen is `src/pages/RoofSetoutPage.tsx` plus `src/components/roof`. Flat lengths are `src/lib/roof/flat.ts` on `src/pages/FlatRoofPage.tsx`. The choice is `src/pages/RoofChoicePage.tsx`.
 
 ## Pricing (freemium split)
 
