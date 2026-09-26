@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
-import { calculateRoof, DEFAULT_INPUTS } from "./geometry.ts";
+import { calculateRoof, DEFAULT_INPUTS, rafterStations } from "./geometry.ts";
 
 test("6 m span 22.5° common rafter matches the AU worked example", () => {
   const r = calculateRoof({
@@ -73,10 +73,15 @@ test("T-junction cutting list includes wing rafters and both ridges", () => {
   assert.ok(names.includes("Major ridge"));
   const wingC = r.cuttingList.find((c) => c.name === "Wing common rafters");
   assert.ok(wingC && wingC.count >= 4);
+  assert.equal(wingC?.section, "wing");
   const minor = r.cuttingList.find((c) => c.name === "Minor ridge");
   assert.ok(minor && minor.overallMm > 1000);
+  assert.equal(minor?.section, "wing");
   const cent = r.cuttingList.find((c) => c.name === "Centering rafters");
-  assert.ok(cent && cent.count >= 6);
+  const wingCent = r.cuttingList.find((c) => c.name === "Wing centering rafters");
+  assert.ok(cent && wingCent && cent.count + wingCent.count >= 6);
+  assert.equal(cent.section, "main");
+  assert.equal(wingCent.section, "wing");
   assert.ok(r.valleyJackCount >= 10);
 });
 
@@ -99,4 +104,78 @@ test("gable wing drops the two outer hips and adds verges", () => {
   const gable = calculateRoof({ ...DEFAULT_INPUTS, junction: "T", wingEnd: "gable" });
   assert.equal(hip.hipCount, gable.hipCount + 2);
   assert.equal(gable.vergeCount, hip.vergeCount + 2);
+  const wingVerge = gable.cuttingList.find((c) => c.name === "Wing verge rafters");
+  assert.equal(wingVerge?.section, "wing");
+  assert.equal(wingVerge?.count, 2);
+});
+
+test("hip commons include every centre between the centering rafters", () => {
+  const r = calculateRoof({ ...DEFAULT_INPUTS, leftEnd: "hip", rightEnd: "hip" });
+  const stations = rafterStations(4000, 8000, 600);
+  assert.equal(stations.length, 8);
+  assert.equal(r.commonCount, (stations.length - 2) * 2);
+  assert.equal(r.commonCount, 12);
+  assert.equal(r.cuttingList.find((c) => c.name === "Common rafters")?.count, 12);
+  assert.ok(r.cuttingList.every((c) => c.section === "main"));
+});
+
+test("gable commons keep the closing bay when length is not a multiple of spacing", () => {
+  const r = calculateRoof({
+    ...DEFAULT_INPUTS,
+    lengthMm: 10000,
+    leftEnd: "gable",
+    rightEnd: "gable",
+    spacingMm: 600,
+  });
+  assert.equal(rafterStations(0, 10000, 600).length, 18);
+  assert.equal(r.commonCount, 36);
+});
+
+test("L-shape splits main and wing members and counts commons on both", () => {
+  const r = calculateRoof({
+    ...DEFAULT_INPUTS,
+    junction: "L",
+    wingSpanMm: 5000,
+    wingProjectionMm: 7000,
+    leftEnd: "hip",
+    rightEnd: "hip",
+  });
+  const main = r.cuttingList.filter((c) => c.section === "main");
+  const wing = r.cuttingList.filter((c) => c.section === "wing");
+  assert.ok(main.length > 0 && wing.length > 0);
+  const mainCommons = main.find((c) => c.name === "Common rafters");
+  const wingCommons = wing.find((c) => c.name === "Wing common rafters");
+  assert.equal(mainCommons?.count, 11);
+  assert.ok(wingCommons && wingCommons.count >= 8);
+  assert.notEqual(mainCommons?.toBirdsmouthMm, wingCommons?.toBirdsmouthMm);
+  const mainHips = main.find((c) => c.name === "Hip rafters");
+  const wingHips = wing.find((c) => c.name === "Wing hip rafters");
+  assert.equal(mainHips?.count, 4);
+  assert.equal(wingHips?.count, 2);
+  assert.notEqual(mainHips?.toBirdsmouthMm, wingHips?.toBirdsmouthMm);
+  assert.equal(r.cuttingList.find((c) => c.name === "Major ridge")?.section, "main");
+  assert.equal(r.cuttingList.find((c) => c.name === "Minor ridge")?.section, "wing");
+  assert.equal(r.cuttingList.find((c) => c.name === "Valley rafters")?.section, "wing");
+});
+
+test("T-shape keeps wing members in their own section even when spans match", () => {
+  const r = calculateRoof({
+    ...DEFAULT_INPUTS,
+    junction: "T",
+    wingSpanMm: 8000,
+    wingProjectionMm: 6000,
+  });
+  const centMain = r.cuttingList.find((c) => c.name === "Centering rafters");
+  const centWing = r.cuttingList.find((c) => c.name === "Wing centering rafters");
+  assert.equal(centMain?.section, "main");
+  assert.equal(centMain?.count, 4);
+  assert.equal(centWing?.section, "wing");
+  assert.ok(centWing && centWing.count >= 2);
+  assert.ok((centMain?.count ?? 0) + (centWing?.count ?? 0) >= 6);
+  const wingCommons = r.cuttingList.find((c) => c.name === "Wing common rafters");
+  assert.ok(wingCommons && wingCommons.count >= 4);
+  assert.equal(wingCommons?.section, "wing");
+  assert.equal(r.cuttingList.find((c) => c.name === "Wing hip rafters")?.count, 2);
+  assert.equal(r.cuttingList.find((c) => c.name === "Hip rafters")?.count, 4);
+  assert.equal(r.commonCount, 6);
 });

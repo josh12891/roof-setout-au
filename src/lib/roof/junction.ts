@@ -265,58 +265,46 @@ export function junctionLayout(inputs: RoofInputs): JunctionLayout | null {
     }
   }
 
-  if (!equalSpan && junctionPts[0]) {
-    const j0 = junctionPts[0];
-    const toward = j0.y < cy ? 1 : -1;
-    const br: Seg = {
-      x1: j0.x,
-      y1: j0.y,
-      x2: majorHalf,
-      y2: j0.y + (majorHalf - j0.x) * toward,
-      label: "Broken hip",
-    };
-    br.x2 = majorHalf;
-    br.y2 = Math.max(majorHalf * 0.15, Math.min(L - majorHalf * 0.15, br.y2));
+  // Broken hip: from where the minor ridge meets the valley, at 45° onto the
+  // major ridge, on the valley's side of that meeting point. Continuing the
+  // valley's own diagonal (the other 45°) runs into the flush side of an L
+  // and misses the ridge/valley junction.
+  const yLo = majorHalf * 0.15;
+  const yHi = L - yLo;
+  junctionPts.forEach((jPt, cornerIndex) => {
+    const rise = majorHalf - jPt.x;
+    if (rise < 40) return;
+    const cornerY = internal[cornerIndex]?.y ?? jPt.y;
+    const toward = cornerY >= jPt.y ? 1 : -1;
+    let y2 = jPt.y + rise * toward;
+    y2 = Math.max(yLo, Math.min(yHi, y2));
+    if (Math.abs(y2 - jPt.y) < 40 || Math.sign(y2 - jPt.y) !== toward) return;
+    const br: Seg = { x1: jPt.x, y1: jPt.y, x2: majorHalf, y2, label: "Broken hip" };
     brokenHips.push(br);
+    const dx = br.x2 - br.x1;
+    const dy = br.y2 - br.y1;
+    const len = Math.hypot(dx, dy) || 1;
+    let px = -dy / len;
+    let py = dx / len;
+    if (px > 0) {
+      px = -px;
+      py = -py;
+    }
     labels.push({
-      x: (br.x1 + br.x2) / 2,
-      y: (br.y1 + br.y2) / 2 - 160,
+      x: (br.x1 + br.x2) / 2 + px * 320,
+      y: (br.y1 + br.y2) / 2 + py * 320,
       text: "Broken hip",
     });
-    const n = Math.max(1, Math.floor(Math.abs(br.y2 - j0.y) / spacing) - 1);
+    const n = Math.max(1, Math.floor(Math.abs(br.y2 - jPt.y) / spacing) - 1);
     for (let i = 1; i <= n; i++) {
       const t = i / (n + 1);
-      const y = j0.y + (br.y2 - j0.y) * t;
+      const y = jPt.y + (br.y2 - jPt.y) * t;
       const vx = valleyXAtY(valleys, y);
-      const xV = vx ?? j0.x + (y - j0.y) * ((j0.x - 0) / ((j0.y - internal[0].y) || 1));
+      const xV = vx ?? jPt.x + (y - jPt.y) * ((jPt.x - 0) / ((jPt.y - cornerY) || 1));
       const xH = br.x1 + (br.x2 - br.x1) * t;
-      addMember(members, xV, y, xH, y, "cripple", i === 1 ? { tag: "cripple" } : undefined);
+      addMember(members, xV, y, xH, y, "cripple", i === 1 && cornerIndex === 0 ? { tag: "cripple" } : undefined);
     }
-    if (junctionPts[1]) {
-      const j1 = junctionPts[1];
-      const br2: Seg = {
-        x1: j1.x,
-        y1: j1.y,
-        x2: majorHalf,
-        y2: j1.y,
-        label: "Broken hip",
-      };
-      br2.y2 = j1.y + (j0.y < cy ? -1 : 1) * 0;
-      // Mirror of first broken hip for the second T valley.
-      br2.y2 = j1.y + (j1.y > cy ? -1 : 1) * (majorHalf - j1.x);
-      br2.y2 = Math.max(majorHalf * 0.15, Math.min(L - majorHalf * 0.15, br2.y2));
-      brokenHips.push(br2);
-      const n2 = Math.max(1, Math.floor(Math.abs(br2.y2 - j1.y) / spacing) - 1);
-      for (let i = 1; i <= n2; i++) {
-        const t = i / (n2 + 1);
-        const y = j1.y + (br2.y2 - j1.y) * t;
-        const vx = valleyXAtY(valleys, y);
-        const xV = vx ?? j1.x;
-        const xH = br2.x1 + (br2.x2 - br2.x1) * t;
-        addMember(members, xV, y, xH, y, "cripple");
-      }
-    }
-  }
+  });
 
   const dimOff = 700;
   const spanY = -O - dimOff;
@@ -343,7 +331,7 @@ export function junctionLayout(inputs: RoofInputs): JunctionLayout | null {
       y1: projY,
       x2: 0,
       y2: projY,
-      label: "projection",
+      label: "wing length",
       valueMm: P,
     },
     {
@@ -351,7 +339,7 @@ export function junctionLayout(inputs: RoofInputs): JunctionLayout | null {
       y1: y0,
       x2: wingOuterX - O - dimOff,
       y2: y1,
-      label: "wing span",
+      label: "wing width/span",
       valueMm: S,
     },
     {

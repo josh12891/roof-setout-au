@@ -80,11 +80,11 @@ test("T-junction plan carries overall, projection and wing-span dims", () => {
   const j = junctionLayout(T);
   assert.ok(j);
   const names = j.dims.map((d) => d.label);
-  for (const n of ["span", "long", "projection", "wing span", "overall"]) {
+  for (const n of ["span", "long", "wing length", "wing width/span", "overall"]) {
     assert.ok(names.includes(n), `missing dim ${n}`);
   }
-  assert.equal(j.dims.find((d) => d.label === "projection")?.valueMm, 4000);
-  assert.equal(j.dims.find((d) => d.label === "wing span")?.valueMm, 5000);
+  assert.equal(j.dims.find((d) => d.label === "wing length")?.valueMm, 4000);
+  assert.equal(j.dims.find((d) => d.label === "wing width/span")?.valueMm, 5000);
   assert.equal(j.valleys.length, 2);
   assert.ok(j.minorRidge);
   const ridgeRun = Math.hypot(j.minorRidge.x2 - j.minorRidge.x1, j.minorRidge.y2 - j.minorRidge.y1);
@@ -240,4 +240,47 @@ test("L flush side over the main is full commons, not empty", () => {
     (m) => m.kind === "common" && m.x1 > 8 && m.x1 < 4000,
   );
   assert.equal(tOverMain?.length ?? 0, 0, "T has valleys both sides — no flush commons over the main");
+});
+
+test("L broken hip runs from the ridge/valley meeting point toward the valley", () => {
+  const j = junctionLayout({
+    ...DEFAULT_INPUTS,
+    junction: "L",
+    lengthMm: 12000,
+    widthMm: 8000,
+    wingSpanMm: 5000,
+    wingProjectionMm: 7000,
+    spacingMm: 600,
+  });
+  assert.ok(j);
+  assert.equal(j.brokenHips.length, 1);
+  const hip = j.brokenHips[0];
+  const valley = j.valleys[0];
+  assert.ok(Math.abs(hip.x1 - valley.x2) < 2 && Math.abs(hip.y1 - valley.y2) < 2, "starts where the valley meets the minor ridge");
+  assert.ok(Math.abs(hip.x2 - j.majorHalf) < 2, "ends on the major ridge");
+  const towardValley = Math.sign(valley.y1 - valley.y2);
+  assert.equal(Math.sign(hip.y2 - hip.y1), towardValley, "45° is the valley side, not the flush side");
+  assert.ok(Math.abs(Math.abs(hip.x2 - hip.x1) - Math.abs(hip.y2 - hip.y1)) < 2, "stays on 45°");
+  const yMid = (hip.y1 + hip.y2) / 2;
+  const yLo = Math.min(valley.y1, valley.y2);
+  const yHi = Math.max(valley.y1, valley.y2);
+  assert.ok(yMid > yLo - 2 && yMid < yHi + 2, "shares the valley's run so it lines up with the junction");
+});
+
+test("T broken hips splay to opposite sides of the two valleys", () => {
+  const j = junctionLayout({
+    ...DEFAULT_INPUTS,
+    junction: "T",
+    lengthMm: 12000,
+    widthMm: 8000,
+    wingSpanMm: 5000,
+    wingProjectionMm: 6000,
+    spacingMm: 600,
+  });
+  assert.ok(j);
+  assert.equal(j.brokenHips.length, 2);
+  const [near, far] = j.brokenHips;
+  assert.ok(near.y2 < near.y1, "near hip runs toward the near valley");
+  assert.ok(far.y2 > far.y1, "far hip runs toward the far valley");
+  assert.ok(Math.abs(near.x2 - j.majorHalf) < 2 && Math.abs(far.x2 - j.majorHalf) < 2);
 });

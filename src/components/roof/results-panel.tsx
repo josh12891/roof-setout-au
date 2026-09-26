@@ -7,7 +7,42 @@ import { Button } from "@/components/ui/button";
 import { AngleChip, BirdsmouthFigure } from "@/components/roof/roof-diagram";
 import { ChippyHipTip } from "@/components/roof/hip-setout";
 import { deg, memberLabel, mm, stockLabel } from "@/lib/roof/format";
-import type { RoofInputs, RoofResult } from "@/lib/roof/types";
+import type { MemberCut, RoofInputs, RoofResult } from "@/lib/roof/types";
+
+function CuttingTable({ title, rows }: { title?: string; rows: MemberCut[] }) {
+  return (
+    <div>
+      {title ? <h4 className="mb-2 text-sm font-medium">{title}</h4> : null}
+      <div className="max-w-full overflow-x-auto">
+        <table className="w-full min-w-[32rem] text-left text-sm">
+          <thead>
+            <tr className="border-b border-border text-[11px] tracking-[0.12em] text-muted-foreground uppercase">
+              <th className="py-2 pr-3 font-medium">Member</th>
+              <th className="py-2 pr-3 font-medium">Qty</th>
+              <th className="py-2 pr-3 font-medium">To BM</th>
+              <th className="py-2 pr-3 font-medium">Overall</th>
+              <th className="py-2 font-medium">Stock</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((c) => (
+              <tr key={`${c.section}-${c.name}`} className="border-b border-border/70 align-top">
+                <td className="py-3 pr-3">
+                  <div className="font-medium">{c.name}</div>
+                  <div className="text-xs text-muted-foreground">{c.notes}</div>
+                </td>
+                <td className="py-3 pr-3 font-mono tabular-nums">{c.count || "—"}</td>
+                <td className="py-3 pr-3 font-mono tabular-nums">{c.count ? mm(c.toBirdsmouthMm, 1) : "—"}</td>
+                <td className="py-3 pr-3 font-mono tabular-nums">{c.count ? mm(c.overallMm, 1) : "—"}</td>
+                <td className="py-3 font-mono tabular-nums">{c.count ? stockLabel(c.stockMm) : "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
 
 function Stat({
   label,
@@ -42,6 +77,16 @@ export function ResultsPanel({ inputs, result }: { inputs: RoofInputs; result: R
   const creeperOpen = isSectionOpen("creeper");
   const junctionOpen = isSectionOpen("junction");
   const b = result.bevels;
+
+  const mainCuts = result.cuttingList.filter((c) => c.section !== "wing");
+  const wingCuts = result.cuttingList.filter((c) => c.section === "wing");
+  const splitCuts = inputs.junction !== "none" && wingCuts.length > 0;
+  const wingTitle =
+    inputs.junction === "T" ? "T-shape wing roof members" : "L-shape wing roof members";
+
+  function cutLine(c: MemberCut) {
+    return `${c.count}× ${c.name}: ${mm(c.toBirdsmouthMm, 1)} to BM / ${mm(c.overallMm, 1)} overall → ${stockLabel(c.stockMm)} stock · ${c.notes}`;
+  }
 
   function copyList() {
     const lines = [
@@ -79,11 +124,9 @@ export function ResultsPanel({ inputs, result }: { inputs: RoofInputs; result: R
       "",
       ...(creeperOpen
         ? [
-            "Cutting list",
-            ...result.cuttingList.map(
-              (c) =>
-                `${c.count}× ${c.name}: ${mm(c.toBirdsmouthMm, 1)} to BM / ${mm(c.overallMm, 1)} overall → ${stockLabel(c.stockMm)} stock · ${c.notes}`,
-            ),
+            ...(splitCuts
+              ? ["Main roof members", ...mainCuts.map(cutLine), "", wingTitle, ...wingCuts.map(cutLine)]
+              : ["Cutting list", ...result.cuttingList.map(cutLine)]),
             "",
             "Creepers from hip corner (one corner, both hands needed)",
             ...result.creepers.map(
@@ -263,33 +306,14 @@ export function ResultsPanel({ inputs, result }: { inputs: RoofInputs; result: R
 
       <section className="print-break rounded-[var(--radius-xl)] border border-border bg-surface p-5">
         <h3 className="mb-4 text-base font-medium">Cutting list</h3>
-        <div className="max-w-full overflow-x-auto">
-          <table className="w-full min-w-[32rem] text-left text-sm">
-            <thead>
-              <tr className="border-b border-border text-[11px] tracking-[0.12em] text-muted-foreground uppercase">
-                <th className="py-2 pr-3 font-medium">Member</th>
-                <th className="py-2 pr-3 font-medium">Qty</th>
-                <th className="py-2 pr-3 font-medium">To BM</th>
-                <th className="py-2 pr-3 font-medium">Overall</th>
-                <th className="py-2 font-medium">Stock</th>
-              </tr>
-            </thead>
-            <tbody>
-              {result.cuttingList.map((c) => (
-                <tr key={c.name} className="border-b border-border/70 align-top">
-                  <td className="py-3 pr-3">
-                    <div className="font-medium">{c.name}</div>
-                    <div className="text-xs text-muted-foreground">{c.notes}</div>
-                  </td>
-                  <td className="py-3 pr-3 font-mono tabular-nums">{c.count || "—"}</td>
-                  <td className="py-3 pr-3 font-mono tabular-nums">{c.count ? mm(c.toBirdsmouthMm, 1) : "—"}</td>
-                  <td className="py-3 pr-3 font-mono tabular-nums">{c.count ? mm(c.overallMm, 1) : "—"}</td>
-                  <td className="py-3 font-mono tabular-nums">{c.count ? stockLabel(c.stockMm) : "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {splitCuts ? (
+          <div className="flex flex-col gap-6">
+            <CuttingTable title="Main roof members" rows={mainCuts} />
+            <CuttingTable title={wingTitle} rows={wingCuts} />
+          </div>
+        ) : (
+          <CuttingTable rows={result.cuttingList} />
+        )}
         <p className="mt-4 text-xs text-muted-foreground">
           Stock lengths are the next common Australian size (2.4, 2.7, 3.0, 3.6 … 6.0, 7.2 m) with
           50 mm waste. Counts assume rafters on both pitches at {inputs.spacingMm} mm centres

@@ -33,6 +33,8 @@ describe("Codemagic iOS CI", () => {
     expect(yaml).toContain("app-store-connect publish");
     const pbx = read("ios/App/App.xcodeproj/project.pbxproj");
     expect(pbx).toContain("PRODUCT_BUNDLE_IDENTIFIER = com.josh12891.roofsetout;");
+    expect(pbx).toContain("CURRENT_PROJECT_VERSION = 3;");
+    expect(pbx).toContain("MARKETING_VERSION = 1.0.2;");
   });
 
   it("guards TestFlight and uses tradies-toolbox-asc without committing Apple secrets", () => {

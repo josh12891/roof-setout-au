@@ -26,9 +26,9 @@ export type RoofInputs = {
   /** Horizontal eaves overhang past the plate, millimetres. */
   overhangMm: number;
   junction: Junction;
-  /** Wing span (width) for an intersecting roof, millimetres. */
+  /** Wing width/span for an intersecting roof, millimetres. */
   wingSpanMm: number;
-  /** How far the wing projects from the main wall, millimetres. */
+  /** Wing length — how far the wing runs out from the main wall, millimetres. */
   wingProjectionMm: number;
   /** Outer end of the intersecting roof. */
   wingEnd: EndType;
@@ -74,6 +74,8 @@ export type Birdsmouth = {
   note: string;
 };
 
+export type CutSection = "main" | "wing";
+
 export type MemberCut = {
   name: string;
   count: number;
@@ -81,6 +83,8 @@ export type MemberCut = {
   overallMm: number;
   stockMm: number;
   notes: string;
+  /** Main roof, or the L/T wing. Lengths are kept apart because the wing span can differ. */
+  section: CutSection;
 };
 
 export type RoofResult = {

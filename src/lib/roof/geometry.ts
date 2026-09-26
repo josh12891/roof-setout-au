@@ -111,6 +111,19 @@ function bevels(pitchRad: number): Bevels {
   };
 }
 
+/**
+ * Rafter centres from `startMm` through `endMm`, both ends included.
+ * `floor(span / spacing) + 1` drops the far rafter whenever the run is not an
+ * exact multiple of the centres — that undercounted commons and centering.
+ */
+export function rafterStations(startMm: number, endMm: number, spacingMm: number): number[] {
+  if (spacingMm <= 0 || endMm < startMm + 8) return [];
+  const stations: number[] = [];
+  for (let y = startMm; y < endMm - 8; y += spacingMm) stations.push(y);
+  stations.push(endMm);
+  return stations;
+}
+
 function creepersForCorner(
   halfSpanMm: number,
   spacingMm: number,
@@ -243,6 +256,15 @@ export function calculateRoof(raw: RoofInputs): RoofResult {
   const wingGeometricalMm = minorHalf > 0 ? minorHalf / Math.cos(pitchRad) : 0;
   const wingCommonToBM = minorHalf > 0 ? Math.max(10, minorHalf - ridgeThk / 2) / Math.cos(pitchRad) : 0;
   const wingCommonOverall = wingCommonToBM + commonOverhangMm;
+  const wingRunMm = minorHalf > 0 ? Math.max(10, minorHalf - ridgeThk / 2) : 0;
+  const wingHipToBM =
+    wingRunMm > 0 ? Math.hypot(wingRunMm * Math.SQRT2, wingRunMm * Math.tan(pitchRad)) : 0;
+  const wingHipOverall = wingHipToBM + hipOverhangMm;
+  const wingEndJackCutting =
+    minorHalf > 0
+      ? Math.max(0, wingGeometricalMm - raw.rafter.breadth / 2 / Math.cos(pitchRad))
+      : 0;
+  const wingEndJackOverall = wingEndJackCutting + commonOverhangMm;
 
   const hipDeductionMm = raw.hip.breadth / Math.SQRT2 / Math.cos(pitchRad);
   const commonDifferenceMm = spacingMm / Math.cos(pitchRad);
@@ -255,7 +277,6 @@ export function calculateRoof(raw: RoofInputs): RoofResult {
     hipDeductionMm,
   );
   const creeperPerHipCorner = cornerCreepers.length;
-  const hipCorners = hipCountBase + wingHips;
   const sameSpan = raw.junction === "none" || Math.abs(minorHalf - halfSpanMm) < 40;
   const wingCornerCreepers =
     wingHipped && minorHalf > 0
@@ -271,25 +292,34 @@ export function calculateRoof(raw: RoofInputs): RoofResult {
     }
   }
 
-  // Commons: pairs along the ridge, both pitches.
-  const ridgeSpanForRafters = pyramid ? 0 : ridgeLengthMm;
-  const commonPairs = ridgeSpanForRafters <= 0 ? 0 : Math.floor(ridgeSpanForRafters / spacingMm) + 1;
-  const hipEnds = pyramid ? 0 : (leftHip ? 1 : 0) + (rightHip ? 1 : 0);
-  const crownEndCount = hipEnds;
-  const centeringMain = hipEnds * 2;
-  let commonCount = commonPairs * 2;
-  if (centeringMain > 0) {
-    commonCount = Math.max(0, commonCount - centeringMain);
-  }
-  if (jn && !pyramid) {
-    let skippedLeft = 0;
-    for (let y = yRidge0 + spacingMm; y < yRidge1 - 8; y += spacingMm) {
-      if (y >= jn.y0 - 4 && y <= jn.y1 + 4) skippedLeft += 1;
+  // Commons sit at every centre from one end rafter to the other, both pitches.
+  // Hip-end stations are centering rafters, not commons. Where the wing takes
+  // the left pitch, that side is a wing member or a valley jack — the right
+  // pitch stays a full common.
+  let commonCount = 0;
+  let centeringMain = 0;
+  if (!pyramid) {
+    const yStart = leftHip ? halfSpanMm : 0;
+    const yEnd = rightHip ? lengthMm - halfSpanMm : lengthMm;
+    const stations = rafterStations(yStart, yEnd, spacingMm);
+    for (let i = 0; i < stations.length; i++) {
+      const y = stations[i];
+      const atLeftHip = leftHip && i === 0;
+      const atRightHip = rightHip && i === stations.length - 1;
+      if (atLeftHip || atRightHip) {
+        if (atLeftHip) centeringMain += jn?.flushNearEnd ? 1 : 2;
+        if (atRightHip && !atLeftHip) centeringMain += 2;
+        continue;
+      }
+      const inWing = jn != null && y >= jn.y0 - 4 && y <= jn.y1 + 4;
+      commonCount += inWing ? 1 : 2;
     }
-    commonCount = Math.max(0, commonCount - skippedLeft);
   }
+  const crownEndCount = pyramid ? 0 : (leftHip ? 1 : 0) + (rightHip ? 1 : 0);
   const centeringCount = centeringMain + wingCenteringCount;
-  const vergeCount = (leftHip ? 0 : 2) + (rightHip ? 0 : 2) + (raw.junction !== "none" && !wingHipped ? 2 : 0);
+  const mainVergeCount = (leftHip ? 0 : 2) + (rightHip ? 0 : 2);
+  const wingVergeCount = raw.junction !== "none" && !wingHipped ? 2 : 0;
+  const vergeCount = mainVergeCount + wingVergeCount;
 
   if (pitchDeg < 15 && raw.covering === "sheet") {
     warnings.push("Sheet roofs are commonly kept at 15° or steeper (check the profile — Trimdek is often 2° but most profiles want 5–15°).");
@@ -311,8 +341,12 @@ export function calculateRoof(raw: RoofInputs): RoofResult {
   const bv = bevels(pitchRad);
 
   const cuttingList: MemberCut[] = [];
+  const add = (section: "main" | "wing", item: Omit<MemberCut, "section">) => {
+    cuttingList.push({ ...item, section });
+  };
+
   if (commonCount > 0) {
-    cuttingList.push({
+    add("main", {
       name: "Common rafters",
       count: commonCount,
       toBirdsmouthMm: round1(commonToBirdsmouthMm),
@@ -321,153 +355,58 @@ export function calculateRoof(raw: RoofInputs): RoofResult {
       notes: `${raw.rafter.depth} × ${raw.rafter.breadth} · geometrical ${round1(geometricalCommonMm)} mm · cutting (half ridge off) ${round1(cuttingCommonMm)} mm · plumb ${bv.plumb}° · seat ${bv.seat}°`,
     });
   }
-  if (centeringMain > 0 || (wingCenteringCount > 0 && sameSpan)) {
-    cuttingList.push({
+  if (centeringMain > 0) {
+    add("main", {
       name: "Centering rafters",
-      count: sameSpan ? centeringMain + wingCenteringCount : centeringMain,
+      count: centeringMain,
       toBirdsmouthMm: round1(commonToBirdsmouthMm),
       overallMm: round1(commonOverallMm),
       stockMm: nextStock(commonOverallMm),
-      notes: `Last commons at each ridge end, against the hips${sameSpan && wingCenteringCount ? " (includes the wing)" : ""}. Same length as a common.`,
+      notes: "Last commons at each ridge end, against the hips. Same length as a common.",
     });
   }
-  if (wingCenteringCount > 0 && !sameSpan) {
-    cuttingList.push({
-      name: "Wing centering rafters",
-      count: wingCenteringCount,
-      toBirdsmouthMm: round1(wingCommonToBM),
-      overallMm: round1(wingCommonOverall),
-      stockMm: nextStock(wingCommonOverall),
-      notes: "Last commons against the wing hips. Same length as a wing common.",
-    });
-  }
-  if (crownEndCount > 0 || wingHipped) {
-    cuttingList.push({
+  if (crownEndCount > 0) {
+    add("main", {
       name: "End jack rafters",
-      count: crownEndCount + (wingHipped ? 1 : 0),
+      count: crownEndCount,
       toBirdsmouthMm: round1(endJackCuttingMm),
       overallMm: round1(endJackCuttingMm + commonOverhangMm),
       stockMm: nextStock(endJackCuttingMm + commonOverhangMm),
       notes: "Same geometrical length as a common. Cutting length reduced by half the common thickness (square off the plumb) where it butts the first common. Centre of each hip end.",
     });
   }
-  if (wingCommonCount > 0) {
-    cuttingList.push({
-      name: "Wing common rafters",
-      count: wingCommonCount,
-      toBirdsmouthMm: round1(wingCommonToBM),
-      overallMm: round1(wingCommonOverall),
-      stockMm: nextStock(wingCommonOverall),
-      notes: `${raw.rafter.depth} × ${raw.rafter.breadth} · intersecting roof, square off the minor ridge · geometrical ${round1(wingGeometricalMm)} mm · plumb ${bv.plumb}° · seat ${bv.seat}°`,
-    });
-  }
-  if (vergeCount > 0) {
-    cuttingList.push({
+  if (mainVergeCount > 0) {
+    add("main", {
       name: "Gable verge / barge rafters",
-      count: vergeCount,
+      count: mainVergeCount,
       toBirdsmouthMm: round1(commonToBirdsmouthMm),
       overallMm: round1(commonOverallMm),
       stockMm: nextStock(commonOverallMm),
       notes: "Cut square to the gable. Add barge board separately.",
     });
   }
-  if (hipCount > 0) {
-    cuttingList.push({
+  if (hipCountBase > 0) {
+    add("main", {
       name: "Hip rafters",
-      count: hipCount,
+      count: hipCountBase,
       toBirdsmouthMm: round1(hipToBirdsmouthMm),
       overallMm: round1(hipOverallMm),
       stockMm: nextStock(hipOverallMm),
       notes: `${raw.hip.depth} × ${raw.hip.breadth} · hip plumb ${bv.hipPitch}° · double cheek at ridge, saw bevel 45°`,
     });
   }
-  if (valleyCount > 0) {
-    cuttingList.push({
-      name: "Valley rafters",
-      count: valleyCount,
-      toBirdsmouthMm: round1(valleyToBirdsmouthMm),
-      overallMm: round1(valleyOverallMm),
-      stockMm: nextStock(valleyOverallMm),
-      notes: "Regular valley (equal pitch). Bevels as hip, cheeks inverted into the trough.",
-    });
-  }
-  if (creeperPerHipCorner > 0 && (sameSpan ? hipCorners : hipCountBase) > 0) {
+  if (creeperPerHipCorner > 0 && hipCountBase > 0) {
     const longest = cornerCreepers[cornerCreepers.length - 1];
-    const mainJackCount = creeperPerHipCorner * (sameSpan ? hipCorners : hipCountBase);
-    cuttingList.push({
+    add("main", {
       name: "Hip jack rafters",
-      count: mainJackCount,
+      count: creeperPerHipCorner * hipCountBase,
       toBirdsmouthMm: longest ? longest.toBirdsmouthMm : 0,
       overallMm: longest ? longest.overallMm : 0,
       stockMm: nextStock(longest ? longest.overallMm : 0),
-      notes: `${creeperPerHipCorner} per hip · common diminish ${round1(commonDifferenceMm)} mm · half hip thickness off, square off the edge bevel · left and right hand · cheek ${bv.sideCut}° (saw tilt 45°)${sameSpan && wingHips ? " · includes wing hips" : ""}`,
+      notes: `${creeperPerHipCorner} per hip · common diminish ${round1(commonDifferenceMm)} mm · half hip thickness off, square off the edge bevel · left and right hand · cheek ${bv.sideCut}° (saw tilt 45°)`,
     });
   }
-  if (wingHipped && !sameSpan && wingCornerCreepers.length > 0) {
-    const longestW = wingCornerCreepers[wingCornerCreepers.length - 1];
-    cuttingList.push({
-      name: "Wing hip jack rafters",
-      count: wingCornerCreepers.length * wingHips,
-      toBirdsmouthMm: longestW ? longestW.toBirdsmouthMm : 0,
-      overallMm: longestW ? longestW.overallMm : 0,
-      stockMm: nextStock(longestW ? longestW.overallMm : 0),
-      notes: `${wingCornerCreepers.length} per wing hip · diminish from the wing span · cheek ${bv.sideCut}°`,
-    });
-  }
-  if (actualValleyJackCount > 0) {
-    const vjLongest = jn
-      ? Math.max(
-          0,
-          ...jn.members.filter((m) => m.kind === "valley-jack").map((m) => m.planMm / Math.cos(pitchRad)),
-        )
-      : cornerCreepers[cornerCreepers.length - 1]?.toBirdsmouthMm ?? 0;
-    cuttingList.push({
-      name: "Valley jack rafters",
-      count: actualValleyJackCount,
-      toBirdsmouthMm: round1(vjLongest),
-      overallMm: round1(vjLongest),
-      stockMm: nextStock(vjLongest),
-      notes: "From the ridge / minor ridge to the valley. Reduce geometrical length by half the valley thickness at the lower end and half the ridge at the top. Longest listed; they diminish by the common difference.",
-    });
-  }
-  if (brokenHipCount > 0) {
-    const brokenLen = Math.hypot(Math.abs(halfSpanMm - minorHalf) * Math.SQRT2, Math.abs(halfSpanMm - minorHalf) * Math.tan(pitchRad));
-    cuttingList.push({
-      name: "Broken hip",
-      count: brokenHipCount,
-      toBirdsmouthMm: round1(brokenLen),
-      overallMm: round1(brokenLen),
-      stockMm: nextStock(brokenLen),
-      notes: "Shortened main hip between the major ridge and the minor ridge / valley intersection. Same bevels as a hip.",
-    });
-  }
-  if (actualCrippleCount > 0) {
-    const crLongest = jn
-      ? Math.max(
-          0,
-          ...jn.members.filter((m) => m.kind === "cripple").map((m) => m.planMm / Math.cos(pitchRad)),
-        )
-      : cornerCreepers[Math.floor(cornerCreepers.length / 2)]?.toBirdsmouthMm ?? 0;
-    cuttingList.push({
-      name: "Cripple jack rafters",
-      count: actualCrippleCount,
-      toBirdsmouthMm: round1(crLongest),
-      overallMm: round1(crLongest),
-      stockMm: nextStock(crLongest),
-      notes: "Between the valley and the hip. Reduce by half the valley and half the hip thickness. No birdsmouth.",
-    });
-  }
-  if (actualMinorRidgeMm > 0) {
-    cuttingList.push({
-      name: "Minor ridge",
-      count: 1,
-      toBirdsmouthMm: round1(actualMinorRidgeMm),
-      overallMm: round1(actualMinorRidgeMm),
-      stockMm: nextStock(actualMinorRidgeMm),
-      notes: `${raw.ridge.depth} × ${raw.ridge.breadth} · ridge on the intersecting roof, from the outer ${wingHipped ? "hip inset" : "gable"} to the valley / major-ridge junction.`,
-    });
-  }
-  cuttingList.push({
+  add("main", {
     name: raw.junction === "none" ? "Ridge board" : "Major ridge",
     count: pyramid ? 0 : 1,
     toBirdsmouthMm: round1(ridgeLengthMm),
@@ -477,6 +416,136 @@ export function calculateRoof(raw: RoofInputs): RoofResult {
       ? "No ridge — hips meet at the apex."
       : `${raw.ridge.depth} × ${raw.ridge.breadth} · ${leftHip && rightHip ? "between hips" : leftHip || rightHip ? "hip to gable" : "gable to gable"}`,
   });
+
+  if (raw.junction !== "none") {
+    if (wingCommonCount > 0) {
+      add("wing", {
+        name: "Wing common rafters",
+        count: wingCommonCount,
+        toBirdsmouthMm: round1(wingCommonToBM),
+        overallMm: round1(wingCommonOverall),
+        stockMm: nextStock(wingCommonOverall),
+        notes: `${raw.rafter.depth} × ${raw.rafter.breadth} · square off the minor ridge · geometrical ${round1(wingGeometricalMm)} mm · plumb ${bv.plumb}° · seat ${bv.seat}°`,
+      });
+    }
+    if (wingCenteringCount > 0) {
+      add("wing", {
+        name: "Wing centering rafters",
+        count: wingCenteringCount,
+        toBirdsmouthMm: round1(wingCommonToBM),
+        overallMm: round1(wingCommonOverall),
+        stockMm: nextStock(wingCommonOverall),
+        notes: "Last commons against the wing hips. Same length as a wing common.",
+      });
+    }
+    if (wingHipped) {
+      add("wing", {
+        name: "Wing end jack",
+        count: 1,
+        toBirdsmouthMm: round1(wingEndJackCutting),
+        overallMm: round1(wingEndJackOverall),
+        stockMm: nextStock(wingEndJackOverall),
+        notes: "Centre of the wing hip end. Cutting length reduced by half the common thickness where it butts the first wing common.",
+      });
+    }
+    if (wingVergeCount > 0) {
+      add("wing", {
+        name: "Wing verge rafters",
+        count: wingVergeCount,
+        toBirdsmouthMm: round1(wingCommonToBM),
+        overallMm: round1(wingCommonOverall),
+        stockMm: nextStock(wingCommonOverall),
+        notes: "Cut square to the wing gable. Add barge board separately.",
+      });
+    }
+    if (wingHips > 0) {
+      add("wing", {
+        name: "Wing hip rafters",
+        count: wingHips,
+        toBirdsmouthMm: round1(wingHipToBM),
+        overallMm: round1(wingHipOverall),
+        stockMm: nextStock(wingHipOverall),
+        notes: `${raw.hip.depth} × ${raw.hip.breadth} · hip plumb ${bv.hipPitch}° · length from the wing width/span${sameSpan ? " (same span as the main)" : ""}`,
+      });
+    }
+    if (wingHipped && wingCornerCreepers.length > 0) {
+      const longestW = wingCornerCreepers[wingCornerCreepers.length - 1];
+      add("wing", {
+        name: "Wing hip jack rafters",
+        count: wingCornerCreepers.length * wingHips,
+        toBirdsmouthMm: longestW ? longestW.toBirdsmouthMm : 0,
+        overallMm: longestW ? longestW.overallMm : 0,
+        stockMm: nextStock(longestW ? longestW.overallMm : 0),
+        notes: `${wingCornerCreepers.length} per wing hip · diminish from the wing width/span · cheek ${bv.sideCut}°`,
+      });
+    }
+    if (valleyCount > 0) {
+      add("wing", {
+        name: "Valley rafters",
+        count: valleyCount,
+        toBirdsmouthMm: round1(valleyToBirdsmouthMm),
+        overallMm: round1(valleyOverallMm),
+        stockMm: nextStock(valleyOverallMm),
+        notes: "Regular valley (equal pitch). Bevels as hip, cheeks inverted into the trough.",
+      });
+    }
+    if (actualValleyJackCount > 0) {
+      const vjLongest = jn
+        ? Math.max(
+            0,
+            ...jn.members.filter((m) => m.kind === "valley-jack").map((m) => m.planMm / Math.cos(pitchRad)),
+          )
+        : 0;
+      add("wing", {
+        name: "Valley jack rafters",
+        count: actualValleyJackCount,
+        toBirdsmouthMm: round1(vjLongest),
+        overallMm: round1(vjLongest),
+        stockMm: nextStock(vjLongest),
+        notes: "From the ridge / minor ridge to the valley. Reduce geometrical length by half the valley thickness at the lower end and half the ridge at the top. Longest listed; they diminish by the common difference.",
+      });
+    }
+    if (brokenHipCount > 0) {
+      const brokenLen = Math.hypot(
+        Math.abs(halfSpanMm - minorHalf) * Math.SQRT2,
+        Math.abs(halfSpanMm - minorHalf) * Math.tan(pitchRad),
+      );
+      add("wing", {
+        name: "Broken hip",
+        count: brokenHipCount,
+        toBirdsmouthMm: round1(brokenLen),
+        overallMm: round1(brokenLen),
+        stockMm: nextStock(brokenLen),
+        notes: "Shortened hip between the major ridge and the minor ridge / valley intersection. Same bevels as a hip.",
+      });
+    }
+    if (actualCrippleCount > 0) {
+      const crLongest = jn
+        ? Math.max(
+            0,
+            ...jn.members.filter((m) => m.kind === "cripple").map((m) => m.planMm / Math.cos(pitchRad)),
+          )
+        : 0;
+      add("wing", {
+        name: "Cripple jack rafters",
+        count: actualCrippleCount,
+        toBirdsmouthMm: round1(crLongest),
+        overallMm: round1(crLongest),
+        stockMm: nextStock(crLongest),
+        notes: "Between the valley and the hip. Reduce by half the valley and half the hip thickness. No birdsmouth.",
+      });
+    }
+    if (actualMinorRidgeMm > 0) {
+      add("wing", {
+        name: "Minor ridge",
+        count: 1,
+        toBirdsmouthMm: round1(actualMinorRidgeMm),
+        overallMm: round1(actualMinorRidgeMm),
+        stockMm: nextStock(actualMinorRidgeMm),
+        notes: `${raw.ridge.depth} × ${raw.ridge.breadth} · ridge on the intersecting roof, from the outer ${wingHipped ? "hip inset" : "gable"} to the valley / major-ridge junction.`,
+      });
+    }
+  }
 
   return {
     pitchDeg,
