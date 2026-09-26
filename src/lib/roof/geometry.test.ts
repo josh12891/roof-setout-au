@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
 import { calculateRoof, DEFAULT_INPUTS, rafterStations } from "./geometry.ts";
+import { junctionLayout } from "./junction.ts";
 
 test("6 m span 22.5° common rafter matches the AU worked example", () => {
   const r = calculateRoof({
@@ -178,4 +179,60 @@ test("T-shape keeps wing members in their own section even when spans match", ()
   assert.equal(r.cuttingList.find((c) => c.name === "Wing hip rafters")?.count, 2);
   assert.equal(r.cuttingList.find((c) => c.name === "Hip rafters")?.count, 4);
   assert.equal(r.commonCount, 6);
+});
+
+test("L broken hip jacks are counted at the longer plate-to-hip length", () => {
+  const inputs = {
+    ...DEFAULT_INPUTS,
+    junction: "L" as const,
+    lengthMm: 12000,
+    widthMm: 8000,
+    wingSpanMm: 5000,
+    wingProjectionMm: 7000,
+    spacingMm: 600 as const,
+    leftEnd: "hip" as const,
+    rightEnd: "hip" as const,
+  };
+  const j = junctionLayout(inputs);
+  const r = calculateRoof(inputs);
+  assert.ok(j);
+  const jacks = j.members.filter((m) => m.kind === "broken-hip-jack");
+  assert.equal(jacks.length, 2);
+  const row = r.cuttingList.find((c) => c.name === "Broken hip jack rafters");
+  assert.ok(row);
+  assert.equal(row.section, "wing");
+  assert.equal(row.count, 2);
+  const longestPlan = Math.max(...jacks.map((m) => m.planMm));
+  const geometrical = longestPlan / Math.cos(r.pitchRad);
+  assert.ok(Math.abs(row.toBirdsmouthMm - (geometrical - r.hipDeductionMm)) < 0.2);
+  assert.ok(row.overallMm > row.toBirdsmouthMm, "plate jack includes the eaves overhang");
+  assert.equal(r.cuttingList.find((c) => c.name === "Broken hip")?.count, 1);
+  assert.equal(r.brokenHipCount, 1);
+});
+
+test("T broken hip jacks are counted once per hip from the ridge", () => {
+  const inputs = {
+    ...DEFAULT_INPUTS,
+    junction: "T" as const,
+    lengthMm: 12000,
+    widthMm: 8000,
+    wingSpanMm: 5000,
+    wingProjectionMm: 6000,
+    spacingMm: 600 as const,
+  };
+  const j = junctionLayout(inputs);
+  const r = calculateRoof(inputs);
+  assert.ok(j);
+  const jacks = j.members.filter((m) => m.kind === "broken-hip-jack");
+  assert.equal(jacks.length, 4);
+  const row = r.cuttingList.find((c) => c.name === "Broken hip jack rafters");
+  assert.ok(row);
+  assert.equal(row.section, "wing");
+  assert.equal(row.count, 4);
+  const longestPlan = Math.max(...jacks.map((m) => m.planMm));
+  const geometrical = longestPlan / Math.cos(r.pitchRad);
+  assert.ok(Math.abs(row.toBirdsmouthMm - geometrical) < 0.2);
+  assert.ok(Math.abs(row.overallMm - geometrical) < 0.2);
+  assert.equal(r.cuttingList.find((c) => c.name === "Broken hip")?.count, 2);
+  assert.ok(jacks.every((m) => Math.min(m.y1, m.y2) > 8), "these do not sit on the plate");
 });
