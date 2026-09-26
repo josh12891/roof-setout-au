@@ -171,6 +171,8 @@ function IsoView({ inputs, result }: { inputs: RoofInputs; result: RoofResult })
     const eaves: string[] = [line(I(FR), I(BR)), line(I(FL), I(FR)), line(I(BL), I(BR))];
     let valleyPaths: string[] = [];
     let brokenHipPaths: string[] = [];
+    let brokenHipJackPaths: string[] = [];
+    const brokenHipJackPts: { x: number; y: number; z: number }[] = [];
     let minorRidgePath = "";
     let nearHip: P3[] | null = leftHip ? [FL, FR, R0] : null;
     let farHip: P3[] | null = rightHip ? [BL, BR, R1] : null;
@@ -328,6 +330,39 @@ function IsoView({ inputs, result }: { inputs: RoofInputs; result: RoofResult })
       brokenHipPaths = jn.brokenHips.map((s) =>
         line(I({ x: s.x1, y: s.y1, z: jZ }), I({ x: s.x2, y: s.y2, z: rZ })),
       );
+      // Roof face beside each broken hip, so the infill rafters sit on a plane.
+      for (const br of jn.brokenHips) {
+        const meetsNearApex =
+          leftHip && Math.abs(br.x2 - W / 2) < 4 && Math.abs(br.y2 - g.half) < 4;
+        if (meetsNearApex) {
+          frontPolys.push([
+            { x: br.x1, y: -O, z: eZ },
+            { x: W / 2, y: -O, z: eZ },
+            { x: W / 2, y: br.y2, z: rZ },
+            { x: br.x1, y: br.y1, z: wall + br.y1 * tanP },
+          ]);
+        }
+      }
+      for (const m of jn.members) {
+        if (m.kind !== "broken-hip-jack") continue;
+        const vertical = Math.abs(m.x1 - m.x2) < 2;
+        if (vertical) {
+          const x = m.x1;
+          const yHip = Math.max(m.y1, m.y2);
+          const a = { x, y: -O, z: eZ };
+          const b = { x, y: yHip, z: wall + yHip * tanP };
+          brokenHipJackPts.push(a, b);
+          brokenHipJackPaths.push(line(I(a), I(b)));
+        } else {
+          const y = m.y1;
+          const xHip = Math.min(m.x1, m.x2);
+          const xRidge = Math.max(m.x1, m.x2);
+          const a = { x: xRidge, y, z: rZ };
+          const b = { x: xHip, y, z: wall + xHip * tanP };
+          brokenHipJackPts.push(a, b);
+          brokenHipJackPaths.push(line(I(a), I(b)));
+        }
+      }
       eaves.push(
         line(I(WN), I(WF)),
         line(I(WN), I(nearWallEave)),
@@ -372,6 +407,7 @@ function IsoView({ inputs, result }: { inputs: RoofInputs; result: RoofResult })
       ...extraWallPts,
       I(wBL),
       I(tBL),
+      ...brokenHipJackPts.map(I),
     ];
     const vb = bounds(all, 900);
 
@@ -392,6 +428,7 @@ function IsoView({ inputs, result }: { inputs: RoofInputs; result: RoofResult })
         rafters,
         valleyPaths,
         brokenHipPaths,
+        brokenHipJackPaths,
         minorRidgePath,
         wingPlanes: wingPlanes.map((p) => poly(p.map(I))),
         ground: poly([I(wFL), I(wFR), I(wBR), I(wBL)]),
@@ -450,6 +487,12 @@ function IsoView({ inputs, result }: { inputs: RoofInputs; result: RoofResult })
       {result.ridgeLengthMm > 0 ? (
         <path d={paths.ridge} stroke="#f3efe4" strokeWidth="70" fill="none" />
       ) : null}
+      {paths.brokenHipJackPaths.map((d, i) => (
+        <g key={`bhj${i}`}>
+          <path d={d} stroke="#1c1916" strokeWidth="120" fill="none" />
+          <path d={d} stroke="#fff8e8" strokeWidth="64" fill="none" />
+        </g>
+      ))}
     </svg>
   );
 }
@@ -559,6 +602,9 @@ function PlanView({
     if (m.tag === "cripple") {
       return access.junction ? `Cripple jack ${mm(slopeLen(m.planMm))}` : null;
     }
+    if (m.tag === "broken-hip-jack") {
+      return access.junction ? `Broken hip jack ${mm(slopeLen(m.planMm))}` : null;
+    }
     return null;
   }
 
@@ -566,6 +612,7 @@ function PlanView({
 
   function kindStroke(kind: MemberSeg["kind"] | Seg["kind"]) {
     if (kind === "crown" || kind === "centering") return { stroke: "#1c1916", width: 36, opacity: 0.9 };
+    if (kind === "broken-hip-jack") return { stroke: "#1c1916", width: 22, opacity: 0.9 };
     if (kind === "cripple") return { stroke: "#2d4a3c", width: 16, opacity: 0.55 };
     if (kind === "valley-jack") return { stroke: "#2d4a3c", width: 16, opacity: 0.5 };
     return { stroke: "#2d4a3c", width: 16, opacity: 0.45 };

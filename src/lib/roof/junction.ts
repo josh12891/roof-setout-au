@@ -8,7 +8,14 @@ export type Seg = {
   label?: string;
 };
 
-export type RafterKind = "common" | "jack" | "centering" | "crown" | "valley-jack" | "cripple";
+export type RafterKind =
+  | "common"
+  | "jack"
+  | "centering"
+  | "crown"
+  | "valley-jack"
+  | "cripple"
+  | "broken-hip-jack";
 
 export type MemberSeg = Seg & {
   kind: RafterKind;
@@ -75,6 +82,21 @@ function addMember(
   const planMm = Math.hypot(x2 - x1, y2 - y1);
   if (planMm < 50) return;
   out.push({ x1, y1, x2, y2, kind, planMm, ...extra });
+}
+
+/**
+ * X on a segment at `y`, or null when `y` is outside the open span.
+ * Endpoints are excluded so a rafter is not drawn on top of the hip's ends.
+ */
+export function xOnOpenSegment(seg: Seg, y: number, margin = 8): number | null {
+  const yLo = Math.min(seg.y1, seg.y2);
+  const yHi = Math.max(seg.y1, seg.y2);
+  if (y <= yLo + margin || y >= yHi - margin) return null;
+  const dy = seg.y2 - seg.y1;
+  if (Math.abs(dy) < 1) return null;
+  const t = (y - seg.y1) / dy;
+  if (t <= 0 || t >= 1) return null;
+  return seg.x1 + (seg.x2 - seg.x1) * t;
 }
 
 /** Valley x at a given y, or null if that y misses the segment. */
@@ -305,6 +327,73 @@ export function junctionLayout(inputs: RoofInputs): JunctionLayout | null {
       addMember(members, xV, y, xH, y, "cripple", i === 1 && cornerIndex === 0 ? { tag: "cripple" } : undefined);
     }
   });
+
+  // A horizontal rafter that crosses a broken hip is cut so it lands on the hip
+  // instead of running through it. The ridge side of that bay is filled below.
+  for (let i = members.length - 1; i >= 0; i--) {
+    const m = members[i];
+    if (Math.abs(m.y1 - m.y2) > 2) continue;
+    const y = m.y1;
+    let xA = m.x1;
+    let xB = m.x2;
+    let clipped = false;
+    for (const hip of brokenHips) {
+      const xHip = xOnOpenSegment(hip, y);
+      if (xHip == null) continue;
+      const lo = Math.min(xA, xB);
+      const hi = Math.max(xA, xB);
+      if (lo < xHip - 15 && hi > xHip + 15) {
+        if (xA >= xB) xA = xHip;
+        else xB = xHip;
+        clipped = true;
+      }
+    }
+    if (!clipped) continue;
+    const planMm = Math.hypot(xB - xA, m.y2 - m.y1);
+    if (planMm < 50) {
+      members.splice(i, 1);
+      continue;
+    }
+    members[i] = { ...m, x1: xA, x2: xB, planMm };
+  }
+
+  // Rafters that run into the broken hip and were not already drawn.
+  // When the hip is the shortened near-end hip (L, hip end), they are the
+  // near-plate jacks whose landing still sits on that hip — same centres as
+  // the other hip jacks on that wall. Otherwise the hip meets the major ridge
+  // inboard (T), and the infill runs square off that ridge onto the hip.
+  for (const br of brokenHips) {
+    const added: MemberSeg[] = [];
+    const pushJack = (x1: number, y1: number, x2: number, y2: number) => {
+      const before = members.length;
+      addMember(members, x1, y1, x2, y2, "broken-hip-jack");
+      if (members.length > before) added.push(members[members.length - 1]);
+    };
+    const meetsNearApex =
+      leftHip && Math.abs(br.x2 - majorHalf) < 4 && Math.abs(br.y2 - majorHalf) < 4;
+    if (meetsNearApex) {
+      for (let d = spacing; d < majorHalf - 8; d += spacing) {
+        const xHip = xOnOpenSegment(br, d);
+        if (xHip == null || Math.abs(xHip - d) > 8) continue;
+        pushJack(d, 0, d, d);
+      }
+    }
+    if (added.length === 0) {
+      const span = Math.abs(br.y2 - br.y1);
+      const sign = Math.sign(br.y1 - br.y2) || 1;
+      for (const d of stationsFromCorner(span, spacing)) {
+        const y = br.y2 + sign * d;
+        const xHip = xOnOpenSegment(br, y);
+        if (xHip == null || majorHalf - xHip < 50) continue;
+        pushJack(majorHalf, y, xHip, y);
+      }
+    }
+    const longest = added.reduce<MemberSeg | null>(
+      (best, m) => (best == null || m.planMm > best.planMm ? m : best),
+      null,
+    );
+    if (longest) longest.tag = "broken-hip-jack";
+  }
 
   const dimOff = 700;
   const spanY = -O - dimOff;

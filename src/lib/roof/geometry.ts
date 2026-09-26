@@ -519,6 +519,24 @@ export function calculateRoof(raw: RoofInputs): RoofResult {
         notes: "Shortened hip between the major ridge and the minor ridge / valley intersection. Same bevels as a hip.",
       });
     }
+    const brokenHipJacks = jn?.members.filter((m) => m.kind === "broken-hip-jack") ?? [];
+    if (brokenHipJacks.length > 0) {
+      const longestPlan = Math.max(...brokenHipJacks.map((m) => m.planMm));
+      const fromPlate = brokenHipJacks.every((m) => Math.min(m.y1, m.y2) < 8);
+      const geometrical = longestPlan / Math.cos(pitchRad);
+      const toBirdsmouthMm = fromPlate ? Math.max(0, geometrical - hipDeductionMm) : geometrical;
+      const overallMm = fromPlate ? toBirdsmouthMm + commonOverhangMm : geometrical;
+      add("wing", {
+        name: "Broken hip jack rafters",
+        count: brokenHipJacks.length,
+        toBirdsmouthMm: round1(toBirdsmouthMm),
+        overallMm: round1(overallMm),
+        stockMm: nextStock(overallMm),
+        notes: fromPlate
+          ? "From the near plate into the broken hip, on the same centres as the hip jacks. Half hip thickness off the cheek. Longest listed."
+          : "From the major ridge into the broken hip. No birdsmouth. Reduce by half the ridge and half the hip thickness. Longest listed.",
+      });
+    }
     if (actualCrippleCount > 0) {
       const crLongest = jn
         ? Math.max(

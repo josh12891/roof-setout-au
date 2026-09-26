@@ -267,6 +267,108 @@ test("L broken hip runs from the ridge/valley meeting point toward the valley", 
   assert.ok(yMid > yLo - 2 && yMid < yHi + 2, "shares the valley's run so it lines up with the junction");
 });
 
+test("L infills two rafters from the near plate into the broken hip", () => {
+  const j = junctionLayout({
+    ...DEFAULT_INPUTS,
+    junction: "L",
+    lengthMm: 12000,
+    widthMm: 8000,
+    wingSpanMm: 5000,
+    wingProjectionMm: 7000,
+    spacingMm: 600,
+    leftEnd: "hip",
+    rightEnd: "hip",
+  });
+  assert.ok(j);
+  assert.equal(j.brokenHips.length, 1);
+  const hip = j.brokenHips[0];
+  const valley = j.valleys[0];
+  assert.ok(Math.abs(hip.x1 - valley.x2) < 2 && Math.abs(hip.y1 - valley.y2) < 2);
+  assert.equal(Math.sign(hip.y2 - hip.y1), Math.sign(valley.y1 - valley.y2));
+  const jacks = j.members.filter((m) => m.kind === "broken-hip-jack");
+  assert.equal(jacks.length, 2);
+  const yLo = Math.min(hip.y1, hip.y2);
+  const yHi = Math.max(hip.y1, hip.y2);
+  for (const m of jacks) {
+    assert.ok(Math.abs(m.x1 - m.x2) < 2, "jack runs square off the near plate");
+    const yPlate = Math.min(m.y1, m.y2);
+    const yHip = Math.max(m.y1, m.y2);
+    assert.ok(Math.abs(yPlate) < 2, "starts on the near plate");
+    assert.ok(yHip > yLo + 8 && yHip < yHi - 8, "lands on the hip, not on its ends");
+    const t = (yHip - hip.y1) / (hip.y2 - hip.y1);
+    const xAt = hip.x1 + (hip.x2 - hip.x1) * t;
+    assert.ok(Math.abs(xAt - m.x1) < 2, "upper end sits on the broken hip");
+    assert.ok(m.planMm > 500);
+  }
+  const xs = jacks.map((m) => m.x1).sort((a, b) => a - b);
+  assert.ok(xs[1] - xs[0] > 400, "the two jacks are on separate centres");
+});
+
+test("T infills two rafters from the major ridge into each broken hip", () => {
+  const j = junctionLayout({
+    ...DEFAULT_INPUTS,
+    junction: "T",
+    lengthMm: 12000,
+    widthMm: 8000,
+    wingSpanMm: 5000,
+    wingProjectionMm: 6000,
+    spacingMm: 600,
+  });
+  assert.ok(j);
+  assert.equal(j.brokenHips.length, 2);
+  const [near, far] = j.brokenHips;
+  assert.ok(near.y2 < near.y1, "near hip still runs toward the near valley");
+  assert.ok(far.y2 > far.y1, "far hip still runs toward the far valley");
+  const jacks = j.members.filter((m) => m.kind === "broken-hip-jack");
+  assert.equal(jacks.length, 4);
+  for (const hip of j.brokenHips) {
+    const yLo = Math.min(hip.y1, hip.y2);
+    const yHi = Math.max(hip.y1, hip.y2);
+    const into = jacks.filter((m) => {
+      const y = (m.y1 + m.y2) / 2;
+      return y > yLo + 8 && y < yHi - 8;
+    });
+    assert.equal(into.length, 2);
+    for (const m of into) {
+      assert.ok(Math.abs(m.y1 - m.y2) < 2, "jack runs square off the major ridge");
+      const xRidge = Math.max(m.x1, m.x2);
+      const xHip = Math.min(m.x1, m.x2);
+      assert.ok(Math.abs(xRidge - j.majorHalf) < 2, "starts on the major ridge");
+      const t = (m.y1 - hip.y1) / (hip.y2 - hip.y1);
+      const xAt = hip.x1 + (hip.x2 - hip.x1) * t;
+      assert.ok(Math.abs(xAt - xHip) < 2, "other end sits on the broken hip");
+      assert.ok(xHip < j.majorHalf - 40, "does not stop on the ridge");
+    }
+  }
+  const crossing = j.members.filter((m) => {
+    if (Math.abs(m.y1 - m.y2) > 2 || m.kind === "broken-hip-jack") return false;
+    const y = m.y1;
+    const lo = Math.min(m.x1, m.x2);
+    const hi = Math.max(m.x1, m.x2);
+    return j.brokenHips.some((hip) => {
+      const yLo = Math.min(hip.y1, hip.y2);
+      const yHi = Math.max(hip.y1, hip.y2);
+      if (y <= yLo + 8 || y >= yHi - 8) return false;
+      const t = (y - hip.y1) / (hip.y2 - hip.y1);
+      const xHip = hip.x1 + (hip.x2 - hip.x1) * t;
+      return lo < xHip - 15 && hi > xHip + 15;
+    });
+  });
+  assert.equal(crossing.length, 0, "no rafter runs through a broken hip");
+});
+
+test("equal spans have no broken hip and no infill jacks", () => {
+  const j = junctionLayout({
+    ...DEFAULT_INPUTS,
+    junction: "L",
+    wingSpanMm: 8000,
+    wingProjectionMm: 4000,
+  });
+  assert.ok(j);
+  assert.equal(j.brokenHips.length, 0);
+  assert.equal(j.members.filter((m) => m.kind === "broken-hip-jack").length, 0);
+});
+
 test("T broken hips splay to opposite sides of the two valleys", () => {
   const j = junctionLayout({
     ...DEFAULT_INPUTS,

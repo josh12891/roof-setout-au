@@ -1,7 +1,7 @@
 {
   "name": "roof-setout-au",
   "private": true,
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
     "description": "AU Roof Carpenter — one Roof Setout screen for Australian carpenters: rafters, hips, creepers.",
   "scripts": {
