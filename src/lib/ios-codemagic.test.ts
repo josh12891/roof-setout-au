@@ -96,6 +96,8 @@ describe("Codemagic Android Play CI", () => {
   it("builds a signed AAB with BILLING for com.josh12891.roofsetout", () => {
     const yaml = read("codemagic.yaml");
     expect(yaml).toContain("android-play:");
+    expect(yaml).toContain("java: 21");
+    expect(yaml).not.toContain("java: 17");
     expect(yaml).toContain("PACKAGE_NAME: com.josh12891.roofsetout");
     expect(yaml).toContain("npx cap sync android");
     expect(yaml).toContain("./gradlew :app:bundleRelease");
