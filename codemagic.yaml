@@ -208,7 +208,13 @@ workflows:
       vars:
         PACKAGE_NAME: com.josh12891.roofsetout
       node: 22
-      java: 17
+      # Capacitor 7 compiles Android as Java 21 (generated
+      # android/app/capacitor.build.gradle and @capacitor/android).
+      # JDK 17 fails :capacitor-android:compileReleaseJavaWithJavac with
+      # "invalid source release: 21". Do not edit the generated file —
+      # `cap sync` rewrites it. mac_mini_m2 (Zulu 21) and Linux (OpenJDK 21)
+      # images include JDK 21; this selects it (the image default is still 17).
+      java: 21
 
     cache:
       cache_paths:
