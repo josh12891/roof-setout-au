@@ -15,7 +15,7 @@ This is a **Capacitor + Vite + React + TypeScript SPA**. Web assets bundle into 
 | Privacy policy (Play + App Store Connect) | **https://josh12891.github.io/roof-setout-au/privacy.html** |
 | IAP product id | `roof_setout_pro_unlock` |
 | IAP price | **$39.99 AUD** one-time (placeholder — not a subscription) |
-| Store version | Marketing **1.0.6** (pitched cutting list matches original Grok common-rafter counts). Android `versionCode` **7**. iOS `CFBundleVersion` **7**. |
+| Store version | Marketing **1.0.7**. Android `versionCode` **8**. iOS `CFBundleShortVersionString` **1.0.7**, `CFBundleVersion` **11** (Codemagic still replaces the iOS build number from the latest TestFlight build when App Store Connect credentials are present). |
 
 Public surfaces use **Australian Dynamics** and **australiancomsnetwork@gmail.com** only — no personal names or personal emails.
 
@@ -26,7 +26,7 @@ The first screen asks **Flat roof** or **Pitched roof**. It is not the old five-
 | Choice | What you get |
 | --- | --- |
 | Flat roof | One plane that can carry pitch: building length and width, pitch, 450/600 centres, eaves each side, member size. Rafter length is calculated from the plan (not typed). 2D plan and isometric. A span-table note stays on the screen — the span is the plan width; the app does not size the timber. |
-| Pitched roof | The one Roof Setout workspace (inputs, roof diagram, results): hips, valleys, creepers, broken-hip jacks, L/T junctions, cutting list, freemium overlay. |
+| Pitched roof | The one Roof Setout workspace (inputs, roof diagram, results): hips, valleys, creepers, broken-hip jacks, L/T junctions, cutting list, freemium overlay. Cutting list stays collapsed behind a button beside Isometric / Hip set-out. The hip jack rafter table lives in Hip set-out. |
 
 | On the pitched screen | |
 | --- | --- |

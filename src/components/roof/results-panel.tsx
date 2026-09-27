@@ -9,41 +9,6 @@ import { ChippyHipTip } from "@/components/roof/hip-setout";
 import { deg, memberLabel, mm, stockLabel } from "@/lib/roof/format";
 import type { MemberCut, RoofInputs, RoofResult } from "@/lib/roof/types";
 
-function CuttingTable({ title, rows }: { title?: string; rows: MemberCut[] }) {
-  return (
-    <div>
-      {title ? <h4 className="mb-2 text-sm font-medium">{title}</h4> : null}
-      <div className="max-w-full overflow-x-auto">
-        <table className="w-full min-w-[32rem] text-left text-sm">
-          <thead>
-            <tr className="border-b border-border text-[11px] tracking-[0.12em] text-muted-foreground uppercase">
-              <th className="py-2 pr-3 font-medium">Member</th>
-              <th className="py-2 pr-3 font-medium">Qty</th>
-              <th className="py-2 pr-3 font-medium">To BM</th>
-              <th className="py-2 pr-3 font-medium">Overall</th>
-              <th className="py-2 font-medium">Stock</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((c) => (
-              <tr key={`${c.section}-${c.name}`} className="border-b border-border/70 align-top">
-                <td className="py-3 pr-3">
-                  <div className="font-medium">{c.name}</div>
-                  <div className="text-xs text-muted-foreground">{c.notes}</div>
-                </td>
-                <td className="py-3 pr-3 font-mono tabular-nums">{c.count || "—"}</td>
-                <td className="py-3 pr-3 font-mono tabular-nums">{c.count ? mm(c.toBirdsmouthMm, 1) : "—"}</td>
-                <td className="py-3 pr-3 font-mono tabular-nums">{c.count ? mm(c.overallMm, 1) : "—"}</td>
-                <td className="py-3 font-mono tabular-nums">{c.count ? stockLabel(c.stockMm) : "—"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
 function Stat({
   label,
   value,
@@ -253,75 +218,6 @@ export function ResultsPanel({ inputs, result }: { inputs: RoofInputs; result: R
         <BirdsmouthFigure inputs={inputs} result={result} />
         <p className="mt-3 text-sm text-muted-foreground">{result.birdsmouth.note}</p>
       </section>
-
-      <ProSection
-        tool="creeper"
-        note
-        title="Creeper schedule"
-        detail="Common difference, hip jacks and the cutting list."
-      >
-      <section className="print-break rounded-[var(--radius-xl)] border border-border bg-surface p-5">
-        <div className="mb-4 flex items-baseline justify-between gap-2">
-          <h3 className="text-base font-medium">Hip jack rafters</h3>
-          <Badge variant="muted">
-            Common diminish {mm(result.commonDifferenceMm, 1)}
-          </Badge>
-        </div>
-        <p className="mb-4 text-sm text-muted-foreground">
-          Lengths from the hip corner, one side. Reduce the geometrical length by {mm(result.hipDeductionMm, 1)}
-          (half the {inputs.hip.breadth} mm hip, square off the edge bevel). Cut a left-hand and a
-          right-hand cheek at each length. {result.creeperPerHipCorner} jacks per hip × {result.hipCount} hips
-          {result.valleyJackCount ? ` · ${result.valleyJackCount} valley jacks` : ""}
-          {result.crippleJackCount ? ` · ${result.crippleJackCount} cripple jacks` : ""}.
-        </p>
-        {result.creepers.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No hip corners on this roof — gable both ends, so no creepers.
-          </p>
-        ) : (
-          <div className="max-w-full overflow-x-auto">
-            <table className="w-full min-w-[28rem] text-left text-sm">
-              <thead>
-                <tr className="border-b border-border text-[11px] tracking-[0.12em] text-muted-foreground uppercase">
-                  <th className="py-2 pr-3 font-medium">Mark</th>
-                  <th className="py-2 pr-3 font-medium">From corner</th>
-                  <th className="py-2 pr-3 font-medium">To birdsmouth</th>
-                  <th className="py-2 font-medium">Overall</th>
-                </tr>
-              </thead>
-              <tbody className="font-mono tabular-nums">
-                {result.creepers.map((c) => (
-                  <tr key={c.index} className="border-b border-border/70">
-                    <td className="py-2 pr-3">{c.index === 1 ? "1st jack" : c.index === 2 ? "2nd jack" : c.index === 3 ? "3rd jack" : `${c.index}th jack`}</td>
-                    <td className="py-2 pr-3">{mm(c.fromCornerMm)}</td>
-                    <td className="py-2 pr-3">{mm(c.toBirdsmouthMm, 1)}</td>
-                    <td className="py-2">{mm(c.overallMm, 1)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-
-      <section className="print-break rounded-[var(--radius-xl)] border border-border bg-surface p-5">
-        <h3 className="mb-4 text-base font-medium">Cutting list</h3>
-        {splitCuts ? (
-          <div className="flex flex-col gap-6">
-            <CuttingTable title="Main roof members" rows={mainCuts} />
-            <CuttingTable title={wingTitle} rows={wingCuts} />
-          </div>
-        ) : (
-          <CuttingTable rows={result.cuttingList} />
-        )}
-        <p className="mt-4 text-xs text-muted-foreground">
-          Stock lengths are the next common Australian size (2.4, 2.7, 3.0, 3.6 … 6.0, 7.2 m) with
-          50 mm waste. Counts assume rafters on both pitches at {inputs.spacingMm} mm centres
-          along the ridge. Confirm against AS 1684 span tables for {memberLabel(inputs.rafter.depth, inputs.rafter.breadth)}{" "}
-          {inputs.covering === "tile" ? "tile" : "sheet"} roof, roof load width and wind classification.
-        </p>
-      </section>
-      </ProSection>
     </div>
   );
 }
