@@ -157,8 +157,8 @@ function FlatPlan({
   const stations = rafterStations(0, lengthMm, spacingMm);
   const runMm = widthMm + overhangMm * 2;
   const vbW = 360;
-  const vbH = 230;
-  const pad = 28;
+  const vbH = 250;
+  const pad = 36;
   const drawW = vbW - pad * 2;
   const drawH = vbH - pad * 2;
   const scale = Math.min(
@@ -172,6 +172,7 @@ function FlatPlan({
   const plateY = originY + overhangMm * scale;
   const plateH = widthMm * scale;
   const sloped = pitchDeg > 0.05;
+  const fallX = originX + drawnL * 0.72;
 
   return (
     <figure className="overflow-hidden rounded-[var(--radius-xl)] border border-border bg-surface">
@@ -213,12 +214,12 @@ function FlatPlan({
               />
             );
           })}
-          {sloped ? (
+          {sloped && plateH > 28 ? (
             <line
-              x1={originX + drawnL * 0.72}
-              y1={plateY + Math.max(plateH - 10, 0)}
-              x2={originX + drawnL * 0.72}
-              y2={plateY + 10}
+              x1={fallX}
+              y1={plateY + 8}
+              x2={fallX}
+              y2={plateY + plateH - 8}
               stroke="#2d4a3c"
               strokeWidth="1.5"
               markerEnd="url(#flat-fall)"
@@ -226,13 +227,26 @@ function FlatPlan({
           ) : null}
           {sloped ? (
             <text
-              x={originX + drawnL * 0.72 + 6}
-              y={(plateY + plateY + plateH) / 2}
+              x={vbW / 2}
+              y={Math.max(12, originY - 6)}
+              textAnchor="middle"
               fill="#2d4a3c"
               fontSize="11"
               fontFamily="Outfit, sans-serif"
             >
-              fall
+              high
+            </text>
+          ) : null}
+          {sloped ? (
+            <text
+              x={vbW / 2}
+              y={Math.min(vbH - 6, originY + drawnRun + 14)}
+              textAnchor="middle"
+              fill="#2d4a3c"
+              fontSize="11"
+              fontFamily="Outfit, sans-serif"
+            >
+              low
             </text>
           ) : null}
         </svg>
@@ -242,7 +256,7 @@ function FlatPlan({
         The box is the plates. Eaves {mm(overhangMm, 0)} past each plate. Centres {spacingMm} mm
         along the length.
         {sloped
-          ? " Fall is toward the low edge."
+          ? " Fall runs down the plan, from the high edge to the low edge."
           : " Level plane — rafter length equals this plan run until you set a pitch."}
       </p>
     </figure>
@@ -268,13 +282,16 @@ function FlatIso({
     const O = Math.max(0, overhangMm);
     const pitchRad = (Math.min(60, Math.max(0, pitchDeg)) * Math.PI) / 180;
     const wall = 2400;
-    const zAt = (x: number) => wall + x * Math.tan(pitchRad);
+    // x = 0 is the high plate. Fall is toward +x so the isometric puts the high edge up on the left.
+    const zAt = (x: number) => wall + (W - x) * Math.tan(pitchRad);
     const P = (x: number, y: number, z: number) => isoProject(x, y, z);
+    const zHigh = zAt(0);
+    const zLow = zAt(W);
     const ground = [P(0, 0, 0), P(W, 0, 0), P(W, L, 0), P(0, L, 0)];
-    const farWall = [P(0, L, 0), P(W, L, 0), P(W, L, zAt(W)), P(0, L, wall)];
-    const lowWall = [P(0, 0, 0), P(0, L, 0), P(0, L, wall), P(0, 0, wall)];
-    const highWall = [P(W, 0, 0), P(W, L, 0), P(W, L, zAt(W)), P(W, 0, zAt(W))];
-    const nearWall = [P(0, 0, 0), P(W, 0, 0), P(W, 0, zAt(W)), P(0, 0, wall)];
+    const farWall = [P(0, L, 0), P(W, L, 0), P(W, L, zLow), P(0, L, zHigh)];
+    const highWall = [P(0, 0, 0), P(0, L, 0), P(0, L, zHigh), P(0, 0, zHigh)];
+    const lowWall = [P(W, 0, 0), P(W, L, 0), P(W, L, zLow), P(W, 0, zLow)];
+    const nearWall = [P(0, 0, 0), P(W, 0, 0), P(W, 0, zLow), P(0, 0, zHigh)];
     const roof = [P(-O, 0, zAt(-O)), P(W + O, 0, zAt(W + O)), P(W + O, L, zAt(W + O)), P(-O, L, zAt(-O))];
     const rafters = rafterStations(0, L, spacingMm).map((y) =>
       line(P(-O, y, zAt(-O)), P(W + O, y, zAt(W + O))),
@@ -304,8 +321,8 @@ function FlatIso({
         >
           <polygon points={poly(drawing.ground)} fill="#d8d1c0" opacity="0.55" />
           <polygon points={poly(drawing.farWall)} fill="#b7ae9e" />
-          <polygon points={poly(drawing.lowWall)} fill="#ddd6c6" />
-          <polygon points={poly(drawing.highWall)} fill="#c4bbab" />
+          <polygon points={poly(drawing.highWall)} fill="#ddd6c6" />
+          <polygon points={poly(drawing.lowWall)} fill="#c4bbab" />
           <polygon points={poly(drawing.nearWall)} fill="#cfc6b4" />
           <polygon points={poly(drawing.roof)} fill="#5c6158" />
           {drawing.rafters.map((d) => (
@@ -324,9 +341,11 @@ function FlatIso({
         </svg>
       </div>
       <p className="px-4 pt-2 pb-4 text-xs text-muted-foreground">
-        One sheet. Rafters run from the low edge to the high edge
-        {pitchDeg > 0.05 ? ` at ${pitchDeg}°.` : ". Set a pitch to raise the high edge."} No hips,
-        valleys or wings.
+        One sheet. Rafters run from the high edge to the low edge
+        {pitchDeg > 0.05
+          ? ` at ${pitchDeg}°. High edge on the left, fall to the right.`
+          : ". Set a pitch to raise the high edge."}{" "}
+        No hips, valleys or wings.
       </p>
     </figure>
   );
