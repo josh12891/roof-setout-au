@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { useMemo } from "react";
 import { Link } from "react-router";
 import { ArrowLeft, RotateCcw } from "lucide-react";
+import { ProSection } from "@/components/pro-section";
+import { useUnlock } from "@/components/unlock-provider";
 import { MetreField, MmField } from "@/components/roof/metre-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -352,6 +354,7 @@ function FlatIso({
 }
 
 export function FlatRoofPage() {
+  const { unlocked } = useUnlock();
   const inputs = useFlatRoofStore(useShallow(selectFlatInputs));
   const setLength = useFlatRoofStore((s) => s.setLength);
   const setWidth = useFlatRoofStore((s) => s.setWidth);
@@ -503,13 +506,21 @@ export function FlatRoofPage() {
               pitchDeg={result.pitchDeg}
               spacingMm={result.spacingMm}
             />
-            <FlatIso
-              lengthMm={result.lengthMm}
-              widthMm={result.widthMm}
-              overhangMm={result.overhangEachSideMm}
-              pitchDeg={result.pitchDeg}
-              spacingMm={result.spacingMm}
-            />
+            {unlocked ? (
+              <FlatIso
+                lengthMm={result.lengthMm}
+                widthMm={result.widthMm}
+                overhangMm={result.overhangEachSideMm}
+                pitchDeg={result.pitchDeg}
+                spacingMm={result.spacingMm}
+              />
+            ) : (
+              <ProSection
+                tool="isometric"
+                title="Isometric"
+                detail="The one-plane 3D view unlocks with Pro. Rafter length and the 2D plan stay free."
+              />
+            )}
             <section className="rounded-[var(--radius-xl)] border border-border bg-surface p-5 sm:p-6">
               <p className="text-xs font-medium tracking-[0.16em] text-muted-foreground uppercase">
                 Order

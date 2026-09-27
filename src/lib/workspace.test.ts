@@ -51,6 +51,7 @@ describe("single roof set-out workspace", () => {
     expect(cap).toContain('"appId": "com.josh12891.roofsetout"');
     expect(cap).toContain('"appName": "AU Roof Carpenter"');
     expect(read("src/lib/unlock.ts")).toContain('UNLOCK_PRODUCT_ID = "roof_setout_pro_unlock"');
+    expect(read("src/lib/unlock.ts")).toContain('ANNUAL_PRODUCT_ID = "roof_setout_pro_annual"');
     expect(read("src/pages/RoofSetoutPage.tsx")).toContain("Roof Setout");
   });
 

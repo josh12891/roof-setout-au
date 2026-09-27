@@ -1,43 +1,99 @@
-/** One-time non-consumable IAP for Pro roof set-out. */
+/** Lifetime non-consumable. Same Pro set as the annual subscription. */
 export const UNLOCK_PRODUCT_ID = "roof_setout_pro_unlock";
 
+/** Auto-renewable annual subscription. No monthly SKU. */
+export const ANNUAL_PRODUCT_ID = "roof_setout_pro_annual";
+
+/**
+ * Google Play base plan id for `roof_setout_pro_annual`.
+ * Required by Play Billing when purchasing a subscription. StoreKit ignores it.
+ */
+export const ANNUAL_BASE_PLAN_ID = "annual";
+
 export const UNLOCK_STORAGE_KEY = "roof-setout-au.unlock.v1";
-
-/** Consumed free-calculation counts for paid tools. */
-export const FREE_USES_STORAGE_KEY = "roof-setout-au.free-uses.v1";
-
-export const FREE_USES_PER_PAID_TOOL = 1;
 
 export const UNLOCK_PRICE_AUD = 39.99;
 export const UNLOCK_PRICE_LABEL = "$39.99 AUD";
 
-/** Play Billing / StoreKit product type: managed one-time (non-consumable). */
+export const ANNUAL_PRICE_AUD = 14.99;
+export const ANNUAL_PRICE_LABEL = "$14.99 AUD/year";
+
+/** Play Billing / StoreKit product type for the lifetime unlock. */
 export const UNLOCK_PRODUCT_TYPE = "inapp";
+
+/** Play Billing / StoreKit product type for the annual subscription. */
+export const ANNUAL_PRODUCT_TYPE = "subs";
+
+export const PRO_PRODUCT_IDS = [UNLOCK_PRODUCT_ID, ANNUAL_PRODUCT_ID] as const;
+
+export type ProPlan = "lifetime" | "annual";
+
+export type ProPlanSpec = {
+  id: string;
+  type: typeof UNLOCK_PRODUCT_TYPE | typeof ANNUAL_PRODUCT_TYPE;
+  priceAud: number;
+  priceLabel: string;
+  /** Android subscription base plan. Omitted for the lifetime in-app product. */
+  planIdentifier?: string;
+};
+
+export const PRO_PLANS: Record<ProPlan, ProPlanSpec> = {
+  lifetime: {
+    id: UNLOCK_PRODUCT_ID,
+    type: UNLOCK_PRODUCT_TYPE,
+    priceAud: UNLOCK_PRICE_AUD,
+    priceLabel: UNLOCK_PRICE_LABEL,
+  },
+  annual: {
+    id: ANNUAL_PRODUCT_ID,
+    type: ANNUAL_PRODUCT_TYPE,
+    priceAud: ANNUAL_PRICE_AUD,
+    priceLabel: ANNUAL_PRICE_LABEL,
+    planIdentifier: ANNUAL_BASE_PLAN_ID,
+  },
+};
 
 export const PUBLIC_PRIVACY_URL =
   "https://josh12891.github.io/roof-setout-au/privacy.html";
 
 /**
- * Team freemium lock (this build):
- * Free forever — gable ends, common rafter, birdsmouth.
- * Pro — hip set-out, creeper schedule (common difference, cutting list,
- * material order), L/T junctions. Flat is one plane (pitch allowed) and stays free.
+ * Locked freemium:
+ * Free — flat roof numbers, and pitched gable numbers (commons, birdsmouth, pitch).
+ * Pro (either IAP) — isometric, cutting list, hip / valley / creeper / L·T set-out.
+ * There is no free preview of a Pro feature.
  */
-export type ToolId = "gable" | "common" | "hip" | "creeper" | "junction";
+export type ToolId =
+  | "gable"
+  | "common"
+  | "hip"
+  | "creeper"
+  | "junction"
+  | "isometric"
+  | "cutting";
 
 export const FREE_TOOL_IDS = ["gable", "common"] as const satisfies readonly ToolId[];
-export const PAID_TOOL_IDS = ["hip", "creeper", "junction"] as const satisfies readonly ToolId[];
+export const PAID_TOOL_IDS = [
+  "hip",
+  "creeper",
+  "junction",
+  "isometric",
+  "cutting",
+] as const satisfies readonly ToolId[];
 
 export type PaidToolId = (typeof PAID_TOOL_IDS)[number];
 
-export type FreeUseCounts = Record<PaidToolId, number>;
-
-export type PaidToolHomeLabel = "try-once" | "unlock" | null;
+export type PaidToolHomeLabel = "unlock" | null;
 
 export type UnlockStorage = {
   getItem: (key: string) => string | null;
   setItem: (key: string, value: string) => void;
   removeItem: (key: string) => void;
+};
+
+export type GableShape = {
+  leftEnd: "hip" | "gable";
+  rightEnd: "hip" | "gable";
+  junction: "none" | "L" | "T";
 };
 
 export function isPaidToolId(id: ToolId): id is PaidToolId {
@@ -48,41 +104,33 @@ export function toolRequiresUnlock(id: ToolId): boolean {
   return isPaidToolId(id);
 }
 
-export function emptyFreeUseCounts(): FreeUseCounts {
-  return { hip: 0, creeper: 0, junction: 0 };
+/**
+ * Whether this tool may show its numbers or drawing.
+ * Gable ends and common rafter (including birdsmouth) stay free.
+ * Hip, valley, creeper, L/T, isometric and the cutting list need Pro.
+ */
+export function canUseTool(id: ToolId, unlocked: boolean): boolean {
+  if (!isPaidToolId(id) || unlocked) return true;
+  return false;
 }
 
-export function freeUsesRemaining(id: PaidToolId, consumed: FreeUseCounts): number {
-  return Math.max(0, FREE_USES_PER_PAID_TOOL - (consumed[id] ?? 0));
-}
-
-export function hasFreeUseRemaining(id: PaidToolId, consumed: FreeUseCounts): boolean {
-  return freeUsesRemaining(id, consumed) > 0;
+export function paidToolHomeLabel(id: ToolId, unlocked: boolean): PaidToolHomeLabel {
+  if (!isPaidToolId(id) || unlocked) return null;
+  return "unlock";
 }
 
 /**
- * Whether this tool may run a calculation now.
- * Gable ends + common rafter (incl. birdsmouth) stay free. Hip set-out,
- * creeper schedule and L/T junctions each get one free real calculation;
- * after that they need Pro (includes common difference, cutting list and
- * material order on the creeper tool).
+ * Free pitched set-out is a gable only. Hip ends and L/T junctions stay in the
+ * stored job for after purchase, but the numbers on screen use this shape.
  */
-export function canUseTool(
-  id: ToolId,
-  unlocked: boolean,
-  consumed: FreeUseCounts = emptyFreeUseCounts(),
-): boolean {
-  if (!isPaidToolId(id) || unlocked) return true;
-  return hasFreeUseRemaining(id, consumed);
-}
-
-export function paidToolHomeLabel(
-  id: ToolId,
-  unlocked: boolean,
-  consumed: FreeUseCounts,
-): PaidToolHomeLabel {
-  if (!isPaidToolId(id) || unlocked) return null;
-  return hasFreeUseRemaining(id, consumed) ? "try-once" : "unlock";
+export function pitchedShapeForTier<T extends GableShape>(inputs: T, unlocked: boolean): T {
+  if (unlocked) return inputs;
+  return {
+    ...inputs,
+    leftEnd: "gable",
+    rightEnd: "gable",
+    junction: "none",
+  };
 }
 
 function browserStorage(): UnlockStorage | null {
@@ -116,54 +164,6 @@ export function writeUnlockedFlag(
   }
 }
 
-export function readFreeUsesConsumed(
-  storage: UnlockStorage | null = browserStorage(),
-): FreeUseCounts {
-  const empty = emptyFreeUseCounts();
-  if (!storage) return empty;
-  try {
-    const raw = storage.getItem(FREE_USES_STORAGE_KEY);
-    if (!raw) return empty;
-    const parsed = JSON.parse(raw) as Partial<FreeUseCounts>;
-    return {
-      hip: clampConsumed(parsed.hip),
-      creeper: clampConsumed(parsed.creeper),
-      junction: clampConsumed(parsed.junction),
-    };
-  } catch {
-    return empty;
-  }
-}
-
-export function writeFreeUsesConsumed(
-  counts: FreeUseCounts,
-  storage: UnlockStorage | null = browserStorage(),
-): void {
-  if (!storage) return;
-  try {
-    storage.setItem(
-      FREE_USES_STORAGE_KEY,
-      JSON.stringify({
-        hip: clampConsumed(counts.hip),
-        creeper: clampConsumed(counts.creeper),
-        junction: clampConsumed(counts.junction),
-      }),
-    );
-  } catch {
-    // Private mode / quota — treat as not persisted.
-  }
-}
-
-export function consumeFreeUse(
-  id: PaidToolId,
-  storage: UnlockStorage | null = browserStorage(),
-): boolean {
-  const current = readFreeUsesConsumed(storage);
-  if (!hasFreeUseRemaining(id, current)) return false;
-  writeFreeUsesConsumed({ ...current, [id]: current[id] + 1 }, storage);
-  return true;
-}
-
 export function restoreUnlockFlag(storage: UnlockStorage | null = browserStorage()): {
   unlocked: boolean;
   message: string;
@@ -175,10 +175,4 @@ export function restoreUnlockFlag(storage: UnlockStorage | null = browserStorage
       ? "Unlock restored on this device."
       : "No purchase found on this device.",
   };
-}
-
-function clampConsumed(value: unknown): number {
-  const n = typeof value === "number" ? value : Number(value);
-  if (!Number.isFinite(n) || n <= 0) return 0;
-  return Math.min(FREE_USES_PER_PAID_TOOL, Math.floor(n));
 }

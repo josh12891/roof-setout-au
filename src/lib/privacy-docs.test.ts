@@ -21,6 +21,7 @@ describe("privacy docs", () => {
     expect(html).toContain("australiancomsnetwork@gmail.com");
     expect(html).toContain("com.josh12891.roofsetout");
     expect(html).toContain("roof_setout_pro_unlock");
+    expect(html).toContain("roof_setout_pro_annual");
     expect(html).not.toMatch(/josh@pearson|Joshua Pearson/i);
     expect(html).not.toMatch(/Roof Setout AU/i);
     expect(html).not.toMatch(/Australian Carpentry/i);

@@ -5,10 +5,10 @@ import { useUnlock } from "@/components/unlock-provider";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TESTFLIGHT_SCREENSHOT_NOTE } from "@/lib/distribution";
-import { PUBLIC_PRIVACY_URL, UNLOCK_PRODUCT_ID } from "@/lib/unlock";
+import { ANNUAL_PRODUCT_ID, PUBLIC_PRIVACY_URL, UNLOCK_PRODUCT_ID } from "@/lib/unlock";
 
 export function AboutPage() {
-  const { unlocked, complimentaryUnlock, restorePurchases, busy, priceLabel } = useUnlock();
+  const { unlocked, complimentaryUnlock, restorePurchases, busy, priceLabels } = useUnlock();
 
   return (
     <AppShell title="About" subtitle="Metric set-out — rafters, hips, creepers" back>
@@ -22,13 +22,15 @@ export function AboutPage() {
         <div className="space-y-3 text-sm text-muted">
           <p>
             Choose flat or pitched first. Flat is one plane — length, width and pitch, with the
-            rafter length calculated from the plan. Pitched is one Roof Setout screen
-            for length, width, pitch, hip or gable ends, rafters, creepers and L/T junctions. No
+            rafter length calculated from the plan. Pitched gable commons, birdsmouth and pitch are
+            free. Isometric, cutting list, and hip / valley / creeper / L·T set-out need Pro. No
             login, no cloud database, no ads. Calculations stay on this device.
           </p>
           <p>
-            Bundle id <code className="text-ink">com.josh12891.roofsetout</code>. Pro unlock product{" "}
-            <code className="text-ink">{UNLOCK_PRODUCT_ID}</code> ({priceLabel}, one-time).
+            Bundle id <code className="text-ink">com.josh12891.roofsetout</code>. Lifetime{" "}
+            <code className="text-ink">{UNLOCK_PRODUCT_ID}</code> ({priceLabels.lifetime}). Annual{" "}
+            <code className="text-ink">{ANNUAL_PRODUCT_ID}</code> ({priceLabels.annual}). Either
+            purchase unlocks the same Pro set.
           </p>
           <p>
             Support:{" "}
@@ -46,7 +48,7 @@ export function AboutPage() {
             <CardDescription>
               {complimentaryUnlock
                 ? TESTFLIGHT_SCREENSHOT_NOTE
-                : "Hip set-out, creeper schedule and L/T junctions are open on this screen, offline."}
+                : "Isometric, cutting list, and hip / valley / creeper / L·T set-out are open on this screen, offline."}
             </CardDescription>
           </CardHeader>
         </Card>

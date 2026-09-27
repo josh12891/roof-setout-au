@@ -13,9 +13,9 @@ This is a **Capacitor + Vite + React + TypeScript SPA**. Web assets bundle into 
 | Support email | australiancomsnetwork@gmail.com |
 | npm / repo folder | `roof-setout-au` (unchanged) |
 | Privacy policy (Play + App Store Connect) | **https://josh12891.github.io/roof-setout-au/privacy.html** |
-| IAP product id | `roof_setout_pro_unlock` |
-| IAP price | **$39.99 AUD** one-time (placeholder — not a subscription) |
-| Store version | Marketing **1.0.8**. Android `versionCode` **9**. iOS `CFBundleShortVersionString` **1.0.8**, `CFBundleVersion` **12** (Codemagic still replaces the iOS build number from the latest TestFlight build when App Store Connect credentials are present). |
+| IAP product ids | Lifetime `roof_setout_pro_unlock` · Annual `roof_setout_pro_annual` |
+| IAP prices | **$39.99 AUD** lifetime, or **$14.99 AUD/year** (no monthly). Either unlocks the same Pro set. |
+| Store version | Marketing **1.0.9**. Android `versionCode` **10**. iOS `CFBundleShortVersionString` **1.0.9**, `CFBundleVersion` **13** (Codemagic still replaces the iOS build number from the latest TestFlight build when App Store Connect credentials are present). |
 
 Public surfaces use **Australian Dynamics** and **australiancomsnetwork@gmail.com** only — no personal names or personal emails.
 
@@ -25,17 +25,15 @@ The first screen asks **Flat roof** or **Pitched roof**. It is not the old five-
 
 | Choice | What you get |
 | --- | --- |
-| Flat roof | One plane that can carry pitch: building length and width, pitch, 450/600 centres, eaves each side, member size. Rafter length is calculated from the plan (not typed). 2D plan and isometric. A span-table note stays on the screen — the span is the plan width; the app does not size the timber. |
+| Flat roof | One plane that can carry pitch: building length and width, pitch, 450/600 centres, eaves each side, member size. Rafter length is calculated from the plan (not typed). 2D plan stays free. The isometric is Pro. A span-table note stays on the screen — the span is the plan width; the app does not size the timber. |
 | Pitched roof | The one Roof Setout workspace (inputs, roof diagram, results): hips, valleys, creepers, broken-hip jacks, L/T junctions, cutting list, freemium overlay. Cutting list stays collapsed behind a button beside Isometric / Hip set-out. The hip jack rafter table lives in Hip set-out. |
 
 | On the pitched screen | |
 | --- | --- |
-| Free | Common rafter, birdsmouth, ridge / gable lengths, common plumb and seat |
-| Pro overlay — hip | Hip length, hip and creeper bevels, hip set-out drawing |
-| Pro overlay — creeper | Common difference, hip jack table, cutting list |
-| Pro overlay — junction | Valley lengths and L/T counts |
+| Free | Pitched gable only: common rafter, birdsmouth, ridge / gable lengths, common plumb and seat, plan and section. Flat roof numbers and the 2D plan stay free. |
+| Pro | Isometric, cutting list, hip / valley / creeper set-out, L/T junctions (broken hip included). No free preview. |
 
-Each Pro section can be previewed once on the device. After that preview, the section stays behind the unlock overlay until `roof_setout_pro_unlock`. The flat path is not behind that overlay. Flat is one plane and may be pitched; it is not a hip roof and it is not a separate Pro tool.
+Hip, L-shape and T-shape controls stay on the pitched screen and open the unlock paywall. They do not change the free gable numbers. The flat path is not behind that overlay.
 
 Pitched geometry is the Grok calculator in `src/lib/roof`. That screen is `src/pages/RoofSetoutPage.tsx` plus `src/components/roof`. Flat lengths are `src/lib/roof/flat.ts` on `src/pages/FlatRoofPage.tsx`. The choice is `src/pages/RoofChoicePage.tsx`.
 
@@ -43,12 +41,14 @@ Pitched geometry is the Grok calculator in `src/lib/roof`. That screen is `src/p
 
 | | |
 | --- | --- |
-| Free forever | Common rafter, birdsmouth, ridge / gable lengths on the one screen |
-| One free preview each | Hip set-out, creeper schedule (common difference, cutting list), L/T junctions — overlay on that same screen |
-| Paid unlock | Same **$39.99 AUD** one-time purchase unlocks all Pro sections |
-| Product id | `roof_setout_pro_unlock` (non-consumable / managed product) |
+| Free | Flat roof numbers, and pitched gable commons / birdsmouth / pitch |
+| Pro | Isometric, cutting list, hip / valley / creeper / L·T — locked until purchase |
+| Annual | **$14.99 AUD/year** — `roof_setout_pro_annual` (auto-renewable; Play base plan id `annual`) |
+| Lifetime | **$39.99 AUD** — `roof_setout_pro_unlock` (non-consumable / managed product) |
 
-Native Android and iOS builds use **[@capgo/native-purchases](https://github.com/Cap-go/capacitor-native-purchases)** (Play Billing + StoreKit 2). A successful purchase or restore caches `localStorage` key `roof-setout-au.unlock.v1`. Free-use counters use `roof-setout-au.free-uses.v1`.
+Either purchase unlocks the same Pro set. Restore queries both the in-app product and the subscription.
+
+Native Android and iOS builds use **[@capgo/native-purchases](https://github.com/Cap-go/capacitor-native-purchases)** (Play Billing + StoreKit 2). A successful purchase or restore caches `localStorage` key `roof-setout-au.unlock.v1`.
 
 **TestFlight only:** complimentary Pro unlock for screenshots (sandbox receipt, no embedded provision). We do **not** bake a Codemagic compile flag into the IPA. App Store and Play customers stay on freemium. Lauren (`lozzpearson@gmail.com`) and other internal TestFlight testers can capture Pro screenshots without purchase; production App Store builds are **not** unlocked this way.
 
@@ -156,9 +156,11 @@ Gradle release signing reads Codemagic `CM_*` env vars when present, otherwise `
 - [ ] Play Console app with application id `com.josh12891.roofsetout` (Australian Dynamics)
 - [ ] Upload keystore in password manager + Codemagic (`roof-setout-upload` or `CM_KEYSTORE` group) — **same** key for every update
 - [ ] Codemagic `android-play` produces a signed AAB that declares `com.android.vending.BILLING`
-- [ ] Create Play IAP `roof_setout_pro_unlock` at **AUD 39.99** (after first Billing AAB is uploaded)
+- [ ] Create Play IAP `roof_setout_pro_unlock` at **AUD 39.99** (lifetime, after first Billing AAB is uploaded)
+- [ ] Create Play subscription `roof_setout_pro_annual` with base plan id **`annual`** at **AUD 14.99 / year** (no monthly)
 - [x] App Store Connect app: display name **AU Roof Carpenter**, subtitle **Metric set-out — rafters, hips, creepers**, support australiancomsnetwork@gmail.com (Apple ID `6814817371`, bundle `com.josh12891.roofsetout`)
 - [ ] StoreKit product `roof_setout_pro_unlock` at **$39.99 AUD** (non-consumable)
+- [ ] StoreKit auto-renewable `roof_setout_pro_annual` at **$14.99 AUD / year** (no monthly)
 - [ ] Paste privacy URL into both stores
 - [ ] Codemagic `ios-app-store` + `tradies-toolbox-asc` → TestFlight IPA
 - [x] `APP_STORE_APPLE_ID` set to `6814817371`
@@ -172,7 +174,7 @@ Gradle release signing reads Codemagic `CM_*` env vars when present, otherwise `
 | 1 | Creeper-first language (prefer “creeper” over “jack” in UI) | **Done** |
 | 2 | Aggregated material order rollup (job-level, not only per-row stock) | **Done** (creeper schedule) |
 | 3 | Common difference / incremental decrease as hero Pro result | **Done** (creeper schedule) |
-| 4 | Freemium: free gable/common/birdsmouth; Pro hip set-out, creeper schedule, common difference, cutting list + material order, L/T | **Done** |
+| 4 | Locked freemium: free flat + pitched gable numbers; Pro isometric, cutting list, hip / valley / creeper / L·T. Annual `roof_setout_pro_annual` or lifetime `roof_setout_pro_unlock`. | **Done** |
 | 5 | Branding AU Roof Carpenter + subtitle lean; no “Australian Carpentry”; bundle `com.josh12891.roofsetout` | **Done** |
 | 6 | Do not claim skillion until shipped | **Done** (not in UI / unlock) |
 | 7 | Codemagic `ios-app-store` + `android-play` | **Done** (this PR — secrets stay in Codemagic UI) |

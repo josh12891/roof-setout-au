@@ -39,8 +39,8 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Play Billing: required in the first uploaded AAB so Console can create
-         roof_setout_pro_unlock. Also merged from @capgo/native-purchases. -->
+    <!-- Play Billing: required so Console can sell roof_setout_pro_unlock
+         and roof_setout_pro_annual. Also merged from @capgo/native-purchases. -->
     <uses-permission android:name="com.android.vending.BILLING" />
 
     <queries>

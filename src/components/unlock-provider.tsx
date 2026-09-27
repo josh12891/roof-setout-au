@@ -10,10 +10,12 @@ import {
 } from "react";
 import {
   billingFootnote,
+  catalogPriceLabels,
   createUnlockBilling,
   listenForUnlockTransactions,
   type BillingActionResult,
   type BillingKind,
+  type PriceLabels,
 } from "@/lib/billing";
 import {
   detectDistribution,
@@ -22,13 +24,9 @@ import {
 } from "@/lib/distribution";
 import {
   canUseTool,
-  consumeFreeUse,
-  emptyFreeUseCounts,
-  readFreeUsesConsumed,
   readUnlockedFlag,
-  UNLOCK_PRICE_LABEL,
-  type FreeUseCounts,
   type PaidToolId,
+  type ProPlan,
   type ToolId,
 } from "@/lib/unlock";
 
@@ -50,31 +48,7 @@ function getUnlockSnapshot() {
 }
 
 function getUnlockServerSnapshot() {
-  return false;
-}
-
-function snapshotFreeUses(counts: FreeUseCounts): string {
-  return `${counts.hip}:${counts.creeper}:${counts.junction}`;
-}
-
-function parseFreeUsesSnapshot(raw: string): FreeUseCounts {
-  const [hipRaw, creeperRaw, junctionRaw] = raw.split(":");
-  const hip = Number(hipRaw);
-  const creeper = Number(creeperRaw);
-  const junction = Number(junctionRaw);
-  return {
-    hip: Number.isFinite(hip) ? hip : 0,
-    creeper: Number.isFinite(creeper) ? creeper : 0,
-    junction: Number.isFinite(junction) ? junction : 0,
-  };
-}
-
-function getFreeUsesSnapshot() {
-  return snapshotFreeUses(readFreeUsesConsumed());
-}
-
-function getFreeUsesServerSnapshot() {
-  return snapshotFreeUses(emptyFreeUseCounts());
+  return readUnlockedFlag();
 }
 
 type UnlockContextValue = {
@@ -82,18 +56,14 @@ type UnlockContextValue = {
   purchased: boolean;
   complimentaryUnlock: boolean;
   distributionChannel: DistributionChannel;
-  freeUsesConsumed: FreeUseCounts;
   canCalculateTool: (id: ToolId) => boolean;
-  consumeToolFreeUse: (id: PaidToolId) => boolean;
-  /** Paid section is visible: purchased, TestFlight, or this session's one preview. */
+  /** Pro drawing or numbers. Locked until lifetime or annual purchase (or TestFlight). */
   isSectionOpen: (id: PaidToolId) => boolean;
-  /** Spend the one free preview and keep that section open until the app reloads. */
-  previewSection: (id: PaidToolId) => boolean;
   kind: BillingKind;
-  priceLabel: string;
+  priceLabels: PriceLabels;
   busy: boolean;
   footnote: string;
-  purchaseUnlock: () => Promise<BillingActionResult>;
+  purchaseUnlock: (plan: ProPlan) => Promise<BillingActionResult>;
   restorePurchases: () => Promise<BillingActionResult>;
 };
 
@@ -105,16 +75,9 @@ export function UnlockProvider({ children }: { children: ReactNode }) {
   const [distributionChannel, setDistributionChannel] = useState<DistributionChannel>("unknown");
   const complimentaryUnlock = grantsComplimentaryUnlock(distributionChannel);
   const unlocked = purchased || complimentaryUnlock;
-  const freeUsesKey = useSyncExternalStore(
-    subscribe,
-    getFreeUsesSnapshot,
-    getFreeUsesServerSnapshot,
-  );
-  const freeUsesConsumed = useMemo(() => parseFreeUsesSnapshot(freeUsesKey), [freeUsesKey]);
   const [kind, setKind] = useState<BillingKind>("stub");
-  const [priceLabel, setPriceLabel] = useState(UNLOCK_PRICE_LABEL);
+  const [priceLabels, setPriceLabels] = useState<PriceLabels>(catalogPriceLabels);
   const [busy, setBusy] = useState(false);
-  const [sessionPreview, setSessionPreview] = useState<Partial<Record<PaidToolId, boolean>>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -131,7 +94,7 @@ export function UnlockProvider({ children }: { children: ReactNode }) {
     let stopListening: (() => void) | undefined;
     void (async () => {
       const nextKind = await billing.resolveKind();
-      const nextPrice = await billing.getPriceLabel();
+      const nextPrices = await billing.getPriceLabels();
       await billing.refreshFromStore();
       stopListening = await listenForUnlockTransactions(() => emit());
       if (cancelled) {
@@ -139,7 +102,7 @@ export function UnlockProvider({ children }: { children: ReactNode }) {
         return;
       }
       setKind(nextKind);
-      setPriceLabel(nextPrice);
+      setPriceLabels(nextPrices);
       emit();
     })();
     return () => {
@@ -148,16 +111,19 @@ export function UnlockProvider({ children }: { children: ReactNode }) {
     };
   }, [billing]);
 
-  const purchaseUnlock = useCallback(async () => {
-    setBusy(true);
-    try {
-      const result = await billing.purchase();
-      emit();
-      return result;
-    } finally {
-      setBusy(false);
-    }
-  }, [billing]);
+  const purchaseUnlock = useCallback(
+    async (plan: ProPlan) => {
+      setBusy(true);
+      try {
+        const result = await billing.purchase(plan);
+        emit();
+        return result;
+      } finally {
+        setBusy(false);
+      }
+    },
+    [billing],
+  );
 
   const restorePurchases = useCallback(async () => {
     setBusy(true);
@@ -170,34 +136,9 @@ export function UnlockProvider({ children }: { children: ReactNode }) {
     }
   }, [billing]);
 
-  const canCalculateTool = useCallback(
-    (id: ToolId) => canUseTool(id, unlocked, freeUsesConsumed),
-    [freeUsesConsumed, unlocked],
-  );
+  const canCalculateTool = useCallback((id: ToolId) => canUseTool(id, unlocked), [unlocked]);
 
-  const consumeToolFreeUse = useCallback((id: PaidToolId) => {
-    const consumed = consumeFreeUse(id);
-    emit();
-    return consumed;
-  }, []);
-
-  const isSectionOpen = useCallback(
-    (id: PaidToolId) => unlocked || Boolean(sessionPreview[id]),
-    [sessionPreview, unlocked],
-  );
-
-  const previewSection = useCallback(
-    (id: PaidToolId) => {
-      if (unlocked || sessionPreview[id]) return true;
-      if (!canUseTool(id, false, freeUsesConsumed)) return false;
-      const consumed = consumeFreeUse(id);
-      emit();
-      if (!consumed) return false;
-      setSessionPreview((current) => ({ ...current, [id]: true }));
-      return true;
-    },
-    [freeUsesConsumed, sessionPreview, unlocked],
-  );
+  const isSectionOpen = useCallback((_id: PaidToolId) => unlocked, [unlocked]);
 
   const footnote = billingFootnote(kind, billing.platformName);
 
@@ -207,13 +148,10 @@ export function UnlockProvider({ children }: { children: ReactNode }) {
       purchased,
       complimentaryUnlock,
       distributionChannel,
-      freeUsesConsumed,
       canCalculateTool,
-      consumeToolFreeUse,
       isSectionOpen,
-      previewSection,
       kind,
-      priceLabel,
+      priceLabels,
       busy,
       footnote,
       purchaseUnlock,
@@ -223,14 +161,11 @@ export function UnlockProvider({ children }: { children: ReactNode }) {
       busy,
       canCalculateTool,
       complimentaryUnlock,
-      consumeToolFreeUse,
       distributionChannel,
       isSectionOpen,
-      previewSection,
       footnote,
-      freeUsesConsumed,
       kind,
-      priceLabel,
+      priceLabels,
       purchased,
       purchaseUnlock,
       restorePurchases,

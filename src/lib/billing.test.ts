@@ -10,9 +10,13 @@ import {
   type NativeBillingClient,
 } from "./billing.ts";
 import {
+  ANNUAL_BASE_PLAN_ID,
+  ANNUAL_PRICE_LABEL,
+  ANNUAL_PRODUCT_ID,
   UNLOCK_PRICE_LABEL,
   UNLOCK_PRODUCT_ID,
   UNLOCK_STORAGE_KEY,
+  writeUnlockedFlag,
   type UnlockStorage,
 } from "./unlock.ts";
 
@@ -79,6 +83,27 @@ describe("transaction entitlement", () => {
       }),
     ).toBe(false);
     expect(
+      transactionGrantsUnlock({
+        productIdentifier: ANNUAL_PRODUCT_ID,
+        purchaseState: "PURCHASED",
+        isActive: true,
+      }),
+    ).toBe(true);
+    expect(
+      transactionGrantsUnlock({
+        productIdentifier: ANNUAL_PRODUCT_ID,
+        purchaseState: "PURCHASED",
+        isActive: false,
+      }),
+    ).toBe(false);
+    expect(
+      transactionGrantsUnlock({
+        productIdentifier: ANNUAL_PRODUCT_ID,
+        purchaseState: "1",
+        expirationDate: "2000-01-01T00:00:00.000Z",
+      }),
+    ).toBe(false);
+    expect(
       purchasesGrantUnlock([
         { productIdentifier: UNLOCK_PRODUCT_ID, purchaseState: "1" },
       ]),
@@ -128,7 +153,10 @@ describe("unlock billing adapter", () => {
     });
 
     expect(await billing.resolveKind()).toBe("stub");
-    expect(await billing.getPriceLabel()).toBe(UNLOCK_PRICE_LABEL);
+    expect(await billing.getPriceLabels()).toEqual({
+      lifetime: UNLOCK_PRICE_LABEL,
+      annual: ANNUAL_PRICE_LABEL,
+    });
     expect(billingFootnote("stub", "web")).toMatch(/not billed/i);
 
     const purchased = await billing.purchase();
@@ -262,13 +290,72 @@ describe("unlock billing adapter", () => {
   it("uses the store price string when the product is listed", async () => {
     const billing = createUnlockBilling({
       client: fakeClient({
-        getProduct: async () => ({ product: { priceString: "A$9.99" } }),
+        getProduct: async (options) => ({
+          product: {
+            priceString:
+              options.productIdentifier === ANNUAL_PRODUCT_ID ? "A$14.99" : "A$39.99",
+          },
+        }),
       }),
       platform: { isNative: true, isDev: false, name: "android" },
       storage: memoryStorage(),
     });
-    expect(await billing.getPriceLabel()).toBe("A$9.99");
+    expect(await billing.getPriceLabels()).toEqual({
+      lifetime: "A$39.99",
+      annual: "A$14.99",
+    });
     expect(billingFootnote("store", "android")).toMatch(/Google Play/i);
     expect(billingFootnote("store", "ios")).toMatch(/App Store/i);
+    expect(billingFootnote("store", "android")).toMatch(/annual/i);
+  });
+
+  it("purchases the annual subscription and restores either product", async () => {
+    const storage = memoryStorage();
+    let purchased: { id: string; type: string; plan?: string } | null = null;
+    const billing = createUnlockBilling({
+      client: fakeClient({
+        purchaseProduct: async (options) => {
+          purchased = {
+            id: options.productIdentifier,
+            type: options.productType,
+            plan: options.planIdentifier,
+          };
+          return {
+            productIdentifier: options.productIdentifier,
+            purchaseState: "1",
+            isActive: true,
+          };
+        },
+        getPurchases: async (options) => {
+          if (options.productType === "subs") {
+            return {
+              purchases: [
+                {
+                  productIdentifier: ANNUAL_PRODUCT_ID,
+                  purchaseState: "1",
+                  isActive: true,
+                },
+              ],
+            };
+          }
+          return { purchases: [] };
+        },
+      }),
+      platform: { isNative: true, isDev: false, name: "ios" },
+      storage,
+    });
+
+    const result = await billing.purchase("annual");
+    expect(purchased).toEqual({
+      id: ANNUAL_PRODUCT_ID,
+      type: "subs",
+      plan: ANNUAL_BASE_PLAN_ID,
+    });
+    expect(result).toEqual({ unlocked: true, message: "Pro set-out unlocked." });
+
+    writeUnlockedFlag(false, storage);
+    const restored = await billing.restore();
+    expect(restored.unlocked).toBe(true);
+    expect(restored.message).toMatch(/restored/i);
   });
 });

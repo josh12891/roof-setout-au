@@ -45,8 +45,8 @@ export function RoofChoicePage() {
           </p>
           <h2 className="mt-1 text-2xl font-medium tracking-tight">Pitched roof</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Hips, valleys, creepers and L/T junctions on the one set-out screen, with the cutting
-            list.
+            Gable commons, birdsmouth and pitch are free. Isometric, cutting list, and hip / valley
+            / creeper / L·T set-out unlock with Pro.
           </p>
         </Link>
       </main>

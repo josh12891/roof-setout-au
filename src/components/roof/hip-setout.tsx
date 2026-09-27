@@ -539,7 +539,6 @@ export function HipSetoutView({ inputs, result }: { inputs: RoofInputs; result: 
       </div>
       <ProSection
         tool="creeper"
-        note
         title="Hip jack rafters"
         detail="Common difference and the jack lengths from the hip corner."
       >
