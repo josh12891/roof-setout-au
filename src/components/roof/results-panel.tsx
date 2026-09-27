@@ -134,7 +134,7 @@ export function ResultsPanel({ inputs, result }: { inputs: RoofInputs; result: R
           value={mm(result.cuttingCommonMm)}
           sub={`Geometrical ${mm(result.geometricalCommonMm)} (to ridge centre) · half ridge off, square off the plumb · overall with eaves ${mm(result.commonOverallMm)}`}
         />
-        <ProSection tool="hip" note>
+        <ProSection tool="hip">
           <Stat
             label="Hip rafter to birdsmouth"
             value={mm(result.hipToBirdsmouthMm)}

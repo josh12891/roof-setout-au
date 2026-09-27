@@ -1,5 +1,7 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { RotateCcw } from "lucide-react";
+import { UnlockActions } from "@/components/unlock-gate";
+import { useUnlock } from "@/components/unlock-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -92,6 +94,11 @@ function MemberSelect({
 
 export function InputsPanel() {
   const s = useRoofStore();
+  const { unlocked } = useUnlock();
+  const [lockedPrompt, setLockedPrompt] = useState<"hip" | "junction" | null>(null);
+  const leftShown = unlocked ? s.leftEnd : "gable";
+  const rightShown = unlocked ? s.rightEnd : "gable";
+  const junctionShown = unlocked ? s.junction : "none";
 
   return (
     <aside className="flex min-w-0 flex-col gap-6 rounded-[var(--radius-xl)] border border-border bg-surface p-5 sm:p-6">
@@ -156,9 +163,16 @@ export function InputsPanel() {
         <Field label="Left end">
           <ToggleGroup
             type="single"
-            value={s.leftEnd}
+            value={leftShown}
             onValueChange={(v) => {
-              if (v === "hip" || v === "gable") s.setLeftEnd(v);
+              if (v === "hip" && !unlocked) {
+                setLockedPrompt("hip");
+                return;
+              }
+              if (v === "hip" || v === "gable") {
+                setLockedPrompt(null);
+                s.setLeftEnd(v);
+              }
             }}
           >
             <ToggleGroupItem value="hip">Hip</ToggleGroupItem>
@@ -168,9 +182,16 @@ export function InputsPanel() {
         <Field label="Right end">
           <ToggleGroup
             type="single"
-            value={s.rightEnd}
+            value={rightShown}
             onValueChange={(v) => {
-              if (v === "hip" || v === "gable") s.setRightEnd(v);
+              if (v === "hip" && !unlocked) {
+                setLockedPrompt("hip");
+                return;
+              }
+              if (v === "hip" || v === "gable") {
+                setLockedPrompt(null);
+                s.setRightEnd(v);
+              }
             }}
           >
             <ToggleGroupItem value="hip">Hip</ToggleGroupItem>
@@ -182,9 +203,16 @@ export function InputsPanel() {
       <Field label="Intersecting roof" hint="valleys">
         <ToggleGroup
           type="single"
-          value={s.junction}
+          value={junctionShown}
           onValueChange={(v) => {
-            if (v === "none" || v === "L" || v === "T") s.setJunction(v);
+            if ((v === "L" || v === "T") && !unlocked) {
+              setLockedPrompt("junction");
+              return;
+            }
+            if (v === "none" || v === "L" || v === "T") {
+              setLockedPrompt(null);
+              s.setJunction(v);
+            }
           }}
         >
           <ToggleGroupItem value="none">None</ToggleGroupItem>
@@ -193,7 +221,19 @@ export function InputsPanel() {
         </ToggleGroup>
       </Field>
 
-      {s.junction !== "none" ? (
+      {lockedPrompt ? (
+        <div className="flex flex-col gap-2 rounded-[var(--radius-lg)] border border-accent/30 bg-ok-soft px-4 py-4">
+          <p className="text-[11px] font-medium tracking-[0.14em] text-accent uppercase">Pro</p>
+          <p className="text-sm text-foreground">
+            {lockedPrompt === "hip"
+              ? "Hip ends unlock with Pro. This screen stays on a gable so the common rafter and birdsmouth stay available."
+              : "L-shape and T-shape junctions, valleys and broken hips unlock with Pro. Gable set-out on this screen stays free."}
+          </p>
+          <UnlockActions compact />
+        </div>
+      ) : null}
+
+      {junctionShown !== "none" ? (
         <>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Wing width/span" hint="across the wing, metres">
@@ -250,9 +290,11 @@ export function InputsPanel() {
       <Field label="Ridge" hint="depth × breadth, mm">
         <MemberSelect id="ridge" value={s.ridge} onChange={s.setRidge} />
       </Field>
-      <Field label="Hip / valley" hint="depth × breadth, mm">
-        <MemberSelect id="hip" value={s.hip} onChange={s.setHip} />
-      </Field>
+      {unlocked ? (
+        <Field label="Hip / valley" hint="depth × breadth, mm">
+          <MemberSelect id="hip" value={s.hip} onChange={s.setHip} />
+        </Field>
+      ) : null}
       <Field label="Wall plate width" hint="birdsmouth seat, mm">
         <ToggleGroup
           type="single"

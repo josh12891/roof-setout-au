@@ -3,8 +3,35 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { UnlockProvider } from "../../components/unlock-provider.tsx";
 import { RoofDiagram } from "../../components/roof/roof-diagram.tsx";
+import { UNLOCK_STORAGE_KEY } from "../unlock.ts";
 import { calculateRoof, DEFAULT_INPUTS } from "./geometry.ts";
 import type { RoofInputs } from "./types.ts";
+
+function withProUnlock<T>(run: () => T): T {
+  const memory = new Map<string, string>([[UNLOCK_STORAGE_KEY, "1"]]);
+  const previous = globalThis.localStorage;
+  Object.defineProperty(globalThis, "localStorage", {
+    configurable: true,
+    value: {
+      getItem: (key: string) => memory.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        memory.set(key, value);
+      },
+      removeItem: (key: string) => {
+        memory.delete(key);
+      },
+    },
+  });
+  try {
+    return run();
+  } finally {
+    if (previous) {
+      Object.defineProperty(globalThis, "localStorage", { configurable: true, value: previous });
+    } else {
+      Reflect.deleteProperty(globalThis, "localStorage");
+    }
+  }
+}
 
 const ROOF_FILLS = new Set([
   "#6e746b",
@@ -24,11 +51,13 @@ function isoSvg(patch: Partial<RoofInputs>) {
     ridge: { ...DEFAULT_INPUTS.ridge },
     hip: { ...DEFAULT_INPUTS.hip },
   };
-  const html = renderToStaticMarkup(
-    createElement(
-      UnlockProvider,
-      null,
-      createElement(RoofDiagram, { inputs, result: calculateRoof(inputs) }),
+  const html = withProUnlock(() =>
+    renderToStaticMarkup(
+      createElement(
+        UnlockProvider,
+        null,
+        createElement(RoofDiagram, { inputs, result: calculateRoof(inputs) }),
+      ),
     ),
   );
   const svg = html.match(/<svg[\s\S]*?<\/svg>/)?.[0];

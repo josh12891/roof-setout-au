@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ProSection } from "@/components/pro-section";
 import { CuttingList } from "@/components/roof/cutting-list";
 import { HipJackRafters, HipSetoutView } from "@/components/roof/hip-setout";
@@ -70,9 +70,13 @@ export function RoofDiagram({
   inputs: RoofInputs;
   result: RoofResult;
 }) {
-  const [view, setView] = useState<View>("iso");
+  const { unlocked, isSectionOpen } = useUnlock();
+  const [view, setView] = useState<View>(unlocked ? "iso" : "plan");
   const [cutsOpen, setCutsOpen] = useState(false);
-  const { isSectionOpen } = useUnlock();
+
+  useEffect(() => {
+    if (unlocked) setView((current) => (current === "plan" ? "iso" : current));
+  }, [unlocked]);
   const access: LengthAccess = {
     hip: isSectionOpen("hip"),
     creeper: isSectionOpen("creeper"),
@@ -134,16 +138,25 @@ export function RoofDiagram({
         {cutsOpen ? (
           <div id="cutting-list" className="print:hidden">
             <ProSection
-              tool="creeper"
-              note
+              tool="cutting"
               title="Cutting list"
-              detail="Member counts, lengths to the birdsmouth and stock sizes. Stays on this roof."
+              detail="Member counts, lengths to the birdsmouth and stock sizes unlock with Pro."
             >
               <CuttingList inputs={inputs} result={result} />
             </ProSection>
           </div>
         ) : view === "iso" ? (
-          <IsoView inputs={inputs} result={result} />
+          unlocked ? (
+            <IsoView inputs={inputs} result={result} />
+          ) : (
+            <div className="px-3 py-6 sm:px-5">
+              <ProSection
+                tool="isometric"
+                title="Isometric"
+                detail="The 3D roof unlocks with Pro. Plan and section stay available for a gable."
+              />
+            </div>
+          )
         ) : view === "plan" ? (
           <PlanView inputs={inputs} result={result} access={access} />
         ) : view === "section" ? (
@@ -155,7 +168,7 @@ export function RoofDiagram({
             <ProSection
               tool="hip"
               title="Hip set-out"
-              detail="The hip set-out drawing stays on this roof. Preview once, or unlock Pro."
+              detail="Hip, valley and creeper set-out unlock with Pro. Gable plan and section stay on this screen."
             />
           </div>
         )}

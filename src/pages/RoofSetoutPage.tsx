@@ -7,13 +7,18 @@ import { RoofDiagram } from "@/components/roof/roof-diagram";
 import { useUnlock } from "@/components/unlock-provider";
 import { Button } from "@/components/ui/button";
 import { calculateRoof } from "@/lib/roof/geometry";
+import { pitchedShapeForTier } from "@/lib/unlock";
 import { selectInputs, useRoofStore } from "@/store/roof-store";
 import { useShallow } from "zustand/react/shallow";
 
 export function RoofSetoutPage() {
   const inputs = useRoofStore(useShallow(selectInputs));
-  const result = useMemo(() => calculateRoof(inputs), [inputs]);
-  const { unlocked, priceLabel } = useUnlock();
+  const { unlocked } = useUnlock();
+  const shownInputs = useMemo(
+    () => pitchedShapeForTier(inputs, unlocked),
+    [inputs, unlocked],
+  );
+  const result = useMemo(() => calculateRoof(shownInputs), [shownInputs]);
 
   useEffect(() => {
     document.body.style.removeProperty("pointer-events");
@@ -40,8 +45,8 @@ export function RoofSetoutPage() {
               Roof Setout
             </h1>
             <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-              Length, width and pitch in. Rafters to the birdsmouth, hips, valleys and creeper
-              bevels out — regular 45° geometry, millimetres, AS 1684.
+              Length, width and pitch in. Gable commons and the birdsmouth stay free. Isometric,
+              cutting list, hips, valleys and creepers unlock with Pro — millimetres, AS 1684.
             </p>
           </div>
           <div className="flex flex-col items-start gap-2 sm:items-end">
@@ -57,7 +62,7 @@ export function RoofSetoutPage() {
                 </span>
               ) : (
                 <a href="#cuts" className="rounded-full bg-accent px-2.5 py-1 font-medium text-accent-foreground">
-                  Pro · {priceLabel}
+                  Unlock Pro
                 </a>
               )}
               <Link to="/about" className="font-medium text-accent underline-offset-2 hover:underline">
@@ -71,9 +76,9 @@ export function RoofSetoutPage() {
       <main className="mx-auto grid max-w-6xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
         <InputsPanel />
         <div className="flex min-w-0 flex-col gap-6">
-          <RoofDiagram inputs={inputs} result={result} />
+          <RoofDiagram inputs={shownInputs} result={result} />
           <div id="cuts">
-            <ResultsPanel inputs={inputs} result={result} />
+            <ResultsPanel inputs={shownInputs} result={result} />
           </div>
         </div>
       </main>

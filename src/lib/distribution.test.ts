@@ -62,19 +62,23 @@ describe("iOS distribution classification", () => {
 
 describe("complimentary TestFlight unlock", () => {
   it("unlocks paid tools on TestFlight without a purchase flag", () => {
-    const consumed = { hip: 1, creeper: 1, junction: 1 };
     expect(effectiveUnlocked(false, "testflight")).toBe(true);
-    expect(canUseTool("hip", effectiveUnlocked(false, "testflight"), consumed)).toBe(true);
-    expect(canUseTool("creeper", effectiveUnlocked(false, "testflight"), consumed)).toBe(true);
-    expect(canUseTool("junction", effectiveUnlocked(false, "testflight"), consumed)).toBe(true);
+    expect(canUseTool("hip", effectiveUnlocked(false, "testflight"))).toBe(true);
+    expect(canUseTool("creeper", effectiveUnlocked(false, "testflight"))).toBe(true);
+    expect(canUseTool("junction", effectiveUnlocked(false, "testflight"))).toBe(true);
+    expect(canUseTool("isometric", effectiveUnlocked(false, "testflight"))).toBe(true);
+    expect(canUseTool("cutting", effectiveUnlocked(false, "testflight"))).toBe(true);
   });
 
-  it("keeps App Store and Play freemium gated after the free calculation", () => {
-    const consumed = { hip: 1, creeper: 1, junction: 1 };
+  it("keeps App Store and Play freemium locked with no free preview", () => {
     expect(effectiveUnlocked(false, "app-store")).toBe(false);
     expect(effectiveUnlocked(false, "play")).toBe(false);
-    expect(canUseTool("hip", effectiveUnlocked(false, "app-store"), consumed)).toBe(false);
-    expect(canUseTool("junction", effectiveUnlocked(false, "play"), consumed)).toBe(false);
+    expect(canUseTool("hip", effectiveUnlocked(false, "app-store"))).toBe(false);
+    expect(canUseTool("junction", effectiveUnlocked(false, "play"))).toBe(false);
+    expect(canUseTool("isometric", effectiveUnlocked(false, "app-store"))).toBe(false);
+    expect(canUseTool("cutting", effectiveUnlocked(false, "play"))).toBe(false);
+    expect(canUseTool("gable", effectiveUnlocked(false, "app-store"))).toBe(true);
+    expect(canUseTool("common", effectiveUnlocked(false, "play"))).toBe(true);
   });
 
   it("still honours a real IAP / restore on every channel", () => {

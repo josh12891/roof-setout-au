@@ -8,7 +8,7 @@ Build a **signed App Store IPA** for AU Roof Carpenter on a cloud Mac, then opti
 | Machine | `mac_mini_m2` |
 | Bundle id | `com.josh12891.roofsetout` |
 | Display name | AU Roof Carpenter |
-| IAP product | `roof_setout_pro_unlock` ($39.99 AUD — StoreKit, not the CI file) |
+| IAP products | Lifetime `roof_setout_pro_unlock` ($39.99 AUD) and annual `roof_setout_pro_annual` ($14.99 AUD/year). StoreKit, not the CI file. |
 | ASC integration | **`tradies-toolbox-asc`** (Key ID `RKW2G7LD5J`; must match Team integrations Developer Portal key name) |
 | App Store Apple ID | `6814817371` (`APP_STORE_APPLE_ID` — ASC app `com.josh12891.roofsetout`) |
 | Secrets | Codemagic UI only. Never commit `.p8`, `.p12`, or passwords. |
@@ -100,11 +100,11 @@ Then `app-store-connect publish` uploads the IPA. It appears under TestFlight af
 
 ### Screenshots (TestFlight testers)
 
-The TestFlight binary **auto-unlocks** hip set-out, creeper schedule, and L/T junctions when it detects a TestFlight install (`sandboxReceipt` and no `embedded.mobileprovision`). App Store customers still pay. This is for Lauren (`lozzpearson@gmail.com`) and other internal testers to capture Pro screenshots without buying — it does **not** unlock App Store production builds.
+The TestFlight binary **auto-unlocks** isometric, cutting list, hip / valley / creeper set-out, and L/T junctions when it detects a TestFlight install (`sandboxReceipt` and no `embedded.mobileprovision`). App Store customers still pay ($14.99 AUD/year or $39.99 AUD lifetime). This is for Lauren (`lozzpearson@gmail.com`) and other internal testers to capture Pro screenshots without buying — it does **not** unlock App Store production builds.
 
 1. Install the new TestFlight build.
 2. Open **Hip set-out**, **Creeper schedule**, and **L / T junctions** — Pro results already work. You do not need to tap Unlock or buy.
-3. About shows a TestFlight note and **Restore purchases** if you are checking the real sandbox IAP (`roof_setout_pro_unlock`).
+3. About shows a TestFlight note and **Restore purchases** if you are checking the real sandbox IAPs (`roof_setout_pro_unlock` and `roof_setout_pro_annual`).
 4. App Store production builds are **not** unlocked this way. Complimentary unlock is not written to `roof-setout-au.unlock.v1`.
 
 To skip upload: set Application variable `PUBLISH_TESTFLIGHT` to `false` in the Codemagic UI.
@@ -113,7 +113,7 @@ Keep `publishing.app_store_connect` commented. The script publisher already uplo
 
 ## 7. App Store Connect app record
 
-**AU Roof Carpenter** (`com.josh12891.roofsetout`, Apple ID **`6814817371`**) already exists in App Store Connect. Subtitle lean: **Metric set-out — rafters, hips, creepers**. Seller **Australian Dynamics**. Support **australiancomsnetwork@gmail.com**. Privacy URL: `https://josh12891.github.io/roof-setout-au/privacy.html`. IAP `roof_setout_pro_unlock` at **$39.99 AUD** is created in the app record (see README); CI does not create the product. `APP_STORE_APPLE_ID` is set to `6814817371` in [`codemagic.yaml`](../codemagic.yaml) (or override as an Application variable).
+**AU Roof Carpenter** (`com.josh12891.roofsetout`, Apple ID **`6814817371`**) already exists in App Store Connect. Subtitle lean: **Metric set-out — rafters, hips, creepers**. Seller **Australian Dynamics**. Support **australiancomsnetwork@gmail.com**. Privacy URL: `https://josh12891.github.io/roof-setout-au/privacy.html`. IAP `roof_setout_pro_unlock` at **$39.99 AUD** (lifetime) and `roof_setout_pro_annual` at **$14.99 AUD/year** are created in the app record (see README); CI does not create the products. `APP_STORE_APPLE_ID` is set to `6814817371` in [`codemagic.yaml`](../codemagic.yaml) (or override as an Application variable).
 
 ## Checklist
 

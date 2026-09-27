@@ -30,7 +30,7 @@ export const Distribution = registerPlugin<DistributionPluginApi>("Distribution"
 });
 
 export const TESTFLIGHT_SCREENSHOT_NOTE =
-  "TestFlight tester build — hip, creeper and L/T junctions are unlocked for App Store screenshots. You do not need to buy. Restore purchases still works if you are testing the real IAP. App Store customers still pay $39.99 AUD.";
+  "TestFlight tester build — isometric, cutting list, hip, valley, creeper and L/T junctions are unlocked for App Store screenshots. You do not need to buy. Restore purchases still works if you are testing the real IAP. App Store customers still pay $14.99 AUD/year or $39.99 AUD lifetime.";
 
 /**
  * TestFlight (and only TestFlight-shaped App Store distribution):

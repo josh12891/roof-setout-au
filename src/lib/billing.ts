@@ -1,12 +1,13 @@
 import { Capacitor } from "@capacitor/core";
 import { NativePurchases, PURCHASE_TYPE } from "@capgo/native-purchases";
 import {
+  ANNUAL_PRODUCT_ID,
+  PRO_PLANS,
+  PRO_PRODUCT_IDS,
   readUnlockedFlag,
   restoreUnlockFlag,
-  UNLOCK_PRICE_LABEL,
-  UNLOCK_PRODUCT_ID,
-  UNLOCK_PRODUCT_TYPE,
   writeUnlockedFlag,
+  type ProPlan,
   type UnlockStorage,
 } from "./unlock";
 
@@ -16,6 +17,7 @@ export type BillingTransaction = {
   productIdentifier?: string;
   purchaseState?: string;
   revocationDate?: string | null;
+  expirationDate?: string | null;
   isActive?: boolean;
 };
 
@@ -34,6 +36,7 @@ export type NativeBillingClient = {
     productIdentifier: string;
     productType: string;
     isConsumable: boolean;
+    planIdentifier?: string;
   }) => Promise<BillingTransaction>;
   restorePurchases: () => Promise<void>;
   getPurchases: (options: {
@@ -52,6 +55,10 @@ export type BillingActionResult = {
   message: string;
   cancelled?: boolean;
 };
+
+export type PriceLabels = Record<ProPlan, string>;
+
+const PURCHASE_QUERY_TYPES = ["inapp", "subs"] as const;
 
 function errorCode(error: unknown): string {
   if (error && typeof error === "object" && "code" in error) {
@@ -95,12 +102,25 @@ export function isAlreadyOwnedPurchase(error: unknown): boolean {
   );
 }
 
+function annualEntitlementActive(transaction: BillingTransaction): boolean {
+  if (transaction.isActive === true) return true;
+  if (transaction.isActive === false) return false;
+  if (transaction.expirationDate) {
+    const expires = Date.parse(transaction.expirationDate);
+    if (Number.isFinite(expires)) return expires > Date.now();
+  }
+  // Android subscriptions are returned only while Play still entitles them.
+  return true;
+}
+
 export function transactionGrantsUnlock(
   transaction: BillingTransaction,
-  productId = UNLOCK_PRODUCT_ID,
+  productIds: readonly string[] = PRO_PRODUCT_IDS,
 ): boolean {
-  if (transaction.productIdentifier !== productId) return false;
+  const productId = transaction.productIdentifier;
+  if (!productId || !productIds.includes(productId)) return false;
   if (transaction.revocationDate) return false;
+  if (productId === ANNUAL_PRODUCT_ID && !annualEntitlementActive(transaction)) return false;
   if (transaction.isActive === false) return false;
   const state = transaction.purchaseState;
   if (state == null || state === "") return true;
@@ -110,9 +130,9 @@ export function transactionGrantsUnlock(
 
 export function purchasesGrantUnlock(
   purchases: BillingTransaction[],
-  productId = UNLOCK_PRODUCT_ID,
+  productIds: readonly string[] = PRO_PRODUCT_IDS,
 ): boolean {
-  return purchases.some((purchase) => transactionGrantsUnlock(purchase, productId));
+  return purchases.some((purchase) => transactionGrantsUnlock(purchase, productIds));
 }
 
 export function shouldUseLocalUnlockStub(
@@ -129,12 +149,19 @@ export function billingFootnote(kind: BillingKind, platformName: string): string
     return "Web/debug: this unlock is a local flag and is not billed. Android and iOS store builds charge through Google Play or the App Store.";
   }
   if (platformName === "android") {
-    return "Google Play bills this one-time unlock. Restore uses your Play account.";
+    return "Google Play bills the lifetime unlock or the annual subscription. Restore checks both on your Play account.";
   }
   if (platformName === "ios") {
-    return "The App Store bills this one-time unlock. Restore uses your Apple ID.";
+    return "The App Store bills the lifetime unlock or the annual subscription. Restore checks both on your Apple ID.";
   }
   return "Purchases go through the App Store or Google Play.";
+}
+
+export function catalogPriceLabels(): PriceLabels {
+  return {
+    lifetime: PRO_PLANS.lifetime.priceLabel,
+    annual: PRO_PLANS.annual.priceLabel,
+  };
 }
 
 function friendlyPurchaseMessage(error: unknown): string {
@@ -169,6 +196,7 @@ export function createCapgoBillingClient(): NativeBillingClient {
         productIdentifier: options.productIdentifier,
         productType: toPurchaseType(options.productType),
         isConsumable: options.isConsumable,
+        planIdentifier: options.planIdentifier,
       }),
     restorePurchases: () => NativePurchases.restorePurchases(),
     getPurchases: (options) =>
@@ -189,9 +217,9 @@ export function detectBillingPlatform(): BillingPlatform {
 export type UnlockBilling = {
   platformName: string;
   resolveKind: () => Promise<BillingKind>;
-  getPriceLabel: () => Promise<string>;
+  getPriceLabels: () => Promise<PriceLabels>;
   refreshFromStore: () => Promise<{ unlocked: boolean; queried: boolean }>;
-  purchase: () => Promise<BillingActionResult>;
+  purchase: (plan?: ProPlan) => Promise<BillingActionResult>;
   restore: () => Promise<BillingActionResult>;
 };
 
@@ -248,10 +276,19 @@ export function createUnlockBilling(
   }
 
   async function queryOwned(): Promise<boolean> {
-    const { purchases } = await client.getPurchases({
-      productType: UNLOCK_PRODUCT_TYPE,
-    });
-    return purchasesGrantUnlock(purchases);
+    const collected: BillingTransaction[] = [];
+    let failures = 0;
+    for (const productType of PURCHASE_QUERY_TYPES) {
+      try {
+        const { purchases } = await client.getPurchases({ productType });
+        collected.push(...purchases);
+      } catch {
+        failures += 1;
+      }
+    }
+    if (purchasesGrantUnlock(collected)) return true;
+    if (failures > 0) throw new Error("incomplete store query");
+    return false;
   }
 
   async function applyOwned(owned: boolean, message: string): Promise<BillingActionResult> {
@@ -296,18 +333,23 @@ export function createUnlockBilling(
   return {
     platformName: platform.name,
     resolveKind,
-    async getPriceLabel() {
-      if ((await resolveKind()) === "stub") return UNLOCK_PRICE_LABEL;
-      try {
-        const { product } = await client.getProduct({
-          productIdentifier: UNLOCK_PRODUCT_ID,
-          productType: UNLOCK_PRODUCT_TYPE,
-        });
-        const label = product.priceString?.trim();
-        return label || UNLOCK_PRICE_LABEL;
-      } catch {
-        return UNLOCK_PRICE_LABEL;
+    async getPriceLabels() {
+      if ((await resolveKind()) === "stub") return catalogPriceLabels();
+      const labels = catalogPriceLabels();
+      for (const plan of ["lifetime", "annual"] as const) {
+        const spec = PRO_PLANS[plan];
+        try {
+          const { product } = await client.getProduct({
+            productIdentifier: spec.id,
+            productType: spec.type,
+          });
+          const label = product.priceString?.trim();
+          if (label) labels[plan] = label;
+        } catch {
+          // Keep the catalog price for this plan.
+        }
       }
+      return labels;
     },
     async refreshFromStore() {
       if ((await resolveKind()) === "stub") {
@@ -321,7 +363,7 @@ export function createUnlockBilling(
         return { unlocked: readUnlockedFlag(storage), queried: false };
       }
     },
-    async purchase() {
+    async purchase(plan: ProPlan = "lifetime") {
       if ((await resolveKind()) === "stub") {
         writeUnlockedFlag(true, storage);
         return {
@@ -330,11 +372,13 @@ export function createUnlockBilling(
         };
       }
 
+      const spec = PRO_PLANS[plan];
       try {
         const transaction = await client.purchaseProduct({
-          productIdentifier: UNLOCK_PRODUCT_ID,
-          productType: UNLOCK_PRODUCT_TYPE,
+          productIdentifier: spec.id,
+          productType: spec.type,
           isConsumable: false,
+          planIdentifier: spec.planIdentifier,
         });
         const owned = transactionGrantsUnlock(transaction) || (await queryOwned());
         if (owned) {
