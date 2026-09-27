@@ -25,12 +25,12 @@ The first screen asks **Flat roof** or **Pitched roof**. It is not the old five-
 
 | Choice | What you get |
 | --- | --- |
-| Flat roof | One plane that can carry pitch: building length and width, pitch, 450/600 centres, eaves each side, member size. Rafter length is calculated from the plan (not typed). 2D plan and isometric. A span-table note stays on the screen — the span is the plan width; the app does not size the timber. |
+| Flat roof | One plane that can carry pitch: building length and width, pitch, 450/600 centres, eaves each side, member size. Rafter length is calculated from the plan (not typed). 2D plan stays free. The isometric is Pro. A span-table note stays on the screen — the span is the plan width; the app does not size the timber. |
 | Pitched roof | The one Roof Setout workspace (inputs, roof diagram, results): hips, valleys, creepers, broken-hip jacks, L/T junctions, cutting list, freemium overlay. Cutting list stays collapsed behind a button beside Isometric / Hip set-out. The hip jack rafter table lives in Hip set-out. |
 
 | On the pitched screen | |
 | --- | --- |
-| Free | Pitched gable only: common rafter, birdsmouth, ridge / gable lengths, common plumb and seat, plan and section. Flat roof numbers stay free, including the one-plane sketch. |
+| Free | Pitched gable only: common rafter, birdsmouth, ridge / gable lengths, common plumb and seat, plan and section. Flat roof numbers and the 2D plan stay free. |
 | Pro | Isometric, cutting list, hip / valley / creeper set-out, L/T junctions (broken hip included). No free preview. |
 
 Hip, L-shape and T-shape controls stay on the pitched screen and open the unlock paywall. They do not change the free gable numbers. The flat path is not behind that overlay.

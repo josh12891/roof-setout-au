@@ -102,10 +102,12 @@ test("flat screen is one plane: length, width, pitch, calculated rafter, plan, i
   assert.match(page, /<output/);
   assert.match(page, /2D plan/);
   assert.match(page, /Isometric/);
+  assert.match(page, /useUnlock/);
+  assert.match(page, /ProSection/);
   assert.match(page, /aria-label="Back to roof choice"/);
   assert.match(page, /to="\/"/);
   assert.doesNotMatch(page, /setRafterLength|rafterLengthMm|Rafter length in metres|id="flat-span"|id="flat-rafter"/);
-  assert.doesNotMatch(page, /ProSection|useUnlock|L-shape|Hip \/ valley/);
+  assert.doesNotMatch(page, /L-shape|Hip \/ valley/);
 });
 
 test("pitched screen has Back to the flat or pitched landing", () => {
