@@ -1,4 +1,6 @@
 import { Lightbulb } from "lucide-react";
+import { ProSection } from "@/components/pro-section";
+import { Badge } from "@/components/ui/badge";
 import { deg, mm } from "@/lib/roof/format";
 import type { Creeper, RoofInputs, RoofResult } from "@/lib/roof/types";
 
@@ -421,6 +423,61 @@ export function ChippyHipTip({ result }: { result: RoofResult }) {
   );
 }
 
+function jackMark(index: number) {
+  if (index === 1) return "1st jack";
+  if (index === 2) return "2nd jack";
+  if (index === 3) return "3rd jack";
+  return `${index}th jack`;
+}
+
+export function HipJackRafters({ inputs, result }: { inputs: RoofInputs; result: RoofResult }) {
+  return (
+    <section className="print-break rounded-[var(--radius-xl)] border border-border bg-surface p-5" data-section="hip-jack-rafters">
+      <div className="mb-4 flex items-baseline justify-between gap-2">
+        <h3 className="text-base font-medium">Hip jack rafters</h3>
+        <Badge variant="muted">
+          Common diminish {mm(result.commonDifferenceMm, 1)}
+        </Badge>
+      </div>
+      <p className="mb-4 text-sm text-muted-foreground">
+        Lengths from the hip corner, one side. Reduce the geometrical length by {mm(result.hipDeductionMm, 1)}
+        (half the {inputs.hip.breadth} mm hip, square off the edge bevel). Cut a left-hand and a
+        right-hand cheek at each length. {result.creeperPerHipCorner} jacks per hip × {result.hipCount} hips
+        {result.valleyJackCount ? ` · ${result.valleyJackCount} valley jacks` : ""}
+        {result.crippleJackCount ? ` · ${result.crippleJackCount} cripple jacks` : ""}.
+      </p>
+      {result.creepers.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          No hip corners on this roof — gable both ends, so no creepers.
+        </p>
+      ) : (
+        <div className="max-w-full overflow-x-auto">
+          <table className="w-full min-w-[28rem] text-left text-sm">
+            <thead>
+              <tr className="border-b border-border text-[11px] tracking-[0.12em] text-muted-foreground uppercase">
+                <th className="py-2 pr-3 font-medium">Mark</th>
+                <th className="py-2 pr-3 font-medium">From corner</th>
+                <th className="py-2 pr-3 font-medium">To birdsmouth</th>
+                <th className="py-2 font-medium">Overall</th>
+              </tr>
+            </thead>
+            <tbody className="font-mono tabular-nums">
+              {result.creepers.map((c) => (
+                <tr key={c.index} className="border-b border-border/70">
+                  <td className="py-2 pr-3">{jackMark(c.index)}</td>
+                  <td className="py-2 pr-3">{mm(c.fromCornerMm)}</td>
+                  <td className="py-2 pr-3">{mm(c.toBirdsmouthMm, 1)}</td>
+                  <td className="py-2">{mm(c.overallMm, 1)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
+
 export function HipSetoutView({ inputs, result }: { inputs: RoofInputs; result: RoofResult }) {
   if (result.hipCount === 0) {
     return (
@@ -480,6 +537,14 @@ export function HipSetoutView({ inputs, result }: { inputs: RoofInputs; result: 
         </p>
         <Creeper3D inputs={inputs} result={result} />
       </div>
+      <ProSection
+        tool="creeper"
+        note
+        title="Hip jack rafters"
+        detail="Common difference and the jack lengths from the hip corner."
+      >
+        <HipJackRafters inputs={inputs} result={result} />
+      </ProSection>
     </div>
   );
 }

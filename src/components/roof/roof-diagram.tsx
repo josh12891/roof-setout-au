@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
 import { ProSection } from "@/components/pro-section";
-import { HipSetoutView } from "@/components/roof/hip-setout";
+import { CuttingList } from "@/components/roof/cutting-list";
+import { HipJackRafters, HipSetoutView } from "@/components/roof/hip-setout";
 import { useUnlock } from "@/components/unlock-provider";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { mm } from "@/lib/roof/format";
 import { junctionLayout, type MemberSeg } from "@/lib/roof/junction";
@@ -69,12 +71,14 @@ export function RoofDiagram({
   result: RoofResult;
 }) {
   const [view, setView] = useState<View>("iso");
+  const [cutsOpen, setCutsOpen] = useState(false);
   const { isSectionOpen } = useUnlock();
   const access: LengthAccess = {
     hip: isSectionOpen("hip"),
     creeper: isSectionOpen("creeper"),
     junction: isSectionOpen("junction"),
   };
+  const setoutMounted = !cutsOpen && view === "setout" && access.hip;
   return (
     <section className="flex flex-col overflow-hidden rounded-[var(--radius-xl)] border border-border bg-surface">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-5">
@@ -91,23 +95,54 @@ export function RoofDiagram({
             {inputs.junction === "L" ? " · L-junction" : inputs.junction === "T" ? " · T-junction" : ""}
           </h2>
         </div>
-        <ToggleGroup
-          type="single"
-          value={view}
-          onValueChange={(v) => {
-            if (v) setView(v as View);
-          }}
-          size="sm"
-          className="w-auto max-w-full flex-wrap no-print"
-        >
-          <ToggleGroupItem value="iso">Isometric</ToggleGroupItem>
-          <ToggleGroupItem value="plan">Plan</ToggleGroupItem>
-          <ToggleGroupItem value="section">Section</ToggleGroupItem>
-          <ToggleGroupItem value="setout">Hip set-out</ToggleGroupItem>
-        </ToggleGroup>
+        <div className="flex max-w-full flex-wrap items-center justify-end gap-2">
+          <ToggleGroup
+            type="single"
+            value={cutsOpen ? "" : view}
+            onValueChange={(v) => {
+              if (!v) return;
+              setView(v as View);
+              setCutsOpen(false);
+            }}
+            size="sm"
+            className="w-auto max-w-full flex-wrap no-print"
+          >
+            <ToggleGroupItem value="iso">Isometric</ToggleGroupItem>
+            <ToggleGroupItem value="plan">Plan</ToggleGroupItem>
+            <ToggleGroupItem value="section">Section</ToggleGroupItem>
+            <ToggleGroupItem value="setout">Hip set-out</ToggleGroupItem>
+          </ToggleGroup>
+          <Button
+            type="button"
+            size="sm"
+            variant={cutsOpen ? "default" : "outline"}
+            className="no-print"
+            aria-expanded={cutsOpen}
+            aria-controls="cutting-list"
+            onClick={() => setCutsOpen((open) => !open)}
+          >
+            Cutting list
+          </Button>
+        </div>
       </header>
-      <div className="relative overflow-hidden bg-[#ece7da] px-2 py-3 sm:px-4 sm:py-5">
-        {view === "iso" ? (
+      <div
+        className={cn(
+          "relative px-2 py-3 sm:px-4 sm:py-5",
+          cutsOpen ? "bg-surface" : "overflow-hidden bg-[#ece7da]",
+        )}
+      >
+        {cutsOpen ? (
+          <div id="cutting-list" className="print:hidden">
+            <ProSection
+              tool="creeper"
+              note
+              title="Cutting list"
+              detail="Member counts, lengths to the birdsmouth and stock sizes. Stays on this roof."
+            >
+              <CuttingList inputs={inputs} result={result} />
+            </ProSection>
+          </div>
+        ) : view === "iso" ? (
           <IsoView inputs={inputs} result={result} />
         ) : view === "plan" ? (
           <PlanView inputs={inputs} result={result} access={access} />
@@ -125,6 +160,16 @@ export function RoofDiagram({
           </div>
         )}
       </div>
+      {access.creeper ? (
+        <div className="hidden print:block border-t border-border bg-white px-4 py-4 sm:px-5">
+          <CuttingList inputs={inputs} result={result} />
+        </div>
+      ) : null}
+      {!setoutMounted && access.creeper && result.hipCount > 0 ? (
+        <div className="hidden print:block border-t border-border bg-white px-4 py-4 sm:px-5">
+          <HipJackRafters inputs={inputs} result={result} />
+        </div>
+      ) : null}
       <footer className="flex flex-wrap gap-2 border-t border-border px-4 py-3 sm:px-5">
         <Badge variant="muted">{result.pitchDeg}° pitch</Badge>
         <Badge variant="muted">{mm(result.risePerMetreMm)} rise / m</Badge>

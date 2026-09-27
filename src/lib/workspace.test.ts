@@ -60,7 +60,27 @@ describe("single roof set-out workspace", () => {
     expect(inputs).toContain('label="Wing length"');
     expect(inputs).not.toContain('label="Wing span"');
     expect(inputs).not.toContain('label="Wing projection"');
-    expect(read("src/components/roof/results-panel.tsx")).toContain("Main roof members");
-    expect(read("src/components/roof/results-panel.tsx")).toContain("wing roof members");
+    expect(read("src/components/roof/cutting-list.tsx")).toContain("Main roof members");
+    expect(read("src/components/roof/cutting-list.tsx")).toContain("wing roof members");
+  });
+
+  it("puts cutting list behind the roof-view button and hip jacks in hip set-out", () => {
+    const diagram = read("src/components/roof/roof-diagram.tsx");
+    const hip = read("src/components/roof/hip-setout.tsx");
+    const results = read("src/components/roof/results-panel.tsx");
+    expect(diagram).toContain("Isometric");
+    expect(diagram).toContain("Hip set-out");
+    expect(diagram).toContain("Cutting list");
+    expect(diagram).toContain('aria-expanded={cutsOpen}');
+    expect(diagram).toContain("useState(false)");
+    expect(diagram).toContain('id="cutting-list"');
+    expect(diagram).toContain("<CuttingList");
+    expect(hip).toContain("Hip jack rafters");
+    expect(hip).toContain("<HipJackRafters");
+    expect(hip).toContain('data-section="hip-jack-rafters"');
+    expect(results).not.toContain("Hip jack rafters");
+    expect(results).not.toContain('data-section="cutting-list"');
+    expect(results).not.toContain("<CuttingList");
+    expect(read("src/components/roof/cutting-list.tsx")).toContain('data-section="cutting-list"');
   });
 });
