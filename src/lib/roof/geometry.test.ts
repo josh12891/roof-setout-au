@@ -110,17 +110,23 @@ test("gable wing drops the two outer hips and adds verges", () => {
   assert.equal(wingVerge?.count, 2);
 });
 
-test("hip commons include every centre between the centering rafters", () => {
-  const r = calculateRoof({ ...DEFAULT_INPUTS, leftEnd: "hip", rightEnd: "hip" });
-  const stations = rafterStations(4000, 8000, 600);
-  assert.equal(stations.length, 8);
-  assert.equal(r.commonCount, (stations.length - 2) * 2);
-  assert.equal(r.commonCount, 12);
-  assert.equal(r.cuttingList.find((c) => c.name === "Common rafters")?.count, 12);
+test("12 m × 8 m hip cutting list matches original Grok counts", () => {
+  // Preset is DEFAULT_INPUTS: 12 m × 8 m, hips both ends, 600 mm centres.
+  // Original Grok: floor(ridge / centres) + 1 pairs, then the four centering
+  // rafters come off. That is 10 commons — not the station grid's extra pair.
+  const r = calculateRoof(DEFAULT_INPUTS);
+  const qty = (name: string) => r.cuttingList.find((c) => c.name === name)?.count;
+  assert.equal(r.commonCount, 10);
+  assert.equal(qty("Common rafters"), 10);
+  assert.equal(qty("Centering rafters"), 4);
+  assert.equal(qty("End jack rafters"), 2);
+  assert.equal(qty("Hip rafters"), 4);
+  assert.equal(qty("Hip jack rafters"), 24);
+  assert.equal(qty("Ridge board"), 1);
   assert.ok(r.cuttingList.every((c) => c.section === "main"));
 });
 
-test("gable commons keep the closing bay when length is not a multiple of spacing", () => {
+test("gable commons follow floor(length / centres) + 1 pairs", () => {
   const r = calculateRoof({
     ...DEFAULT_INPUTS,
     lengthMm: 10000,
@@ -128,8 +134,11 @@ test("gable commons keep the closing bay when length is not a multiple of spacin
     rightEnd: "gable",
     spacingMm: 600,
   });
+  // Flat plan still keeps a rafter on the far plate (18 stations). The pitched
+  // cutting list does not add that short closing bay: 16 spaces + the far end
+  // = 17 pairs × 2 pitches.
   assert.equal(rafterStations(0, 10000, 600).length, 18);
-  assert.equal(r.commonCount, 36);
+  assert.equal(r.commonCount, 34);
 });
 
 test("L-shape splits main and wing members and counts commons on both", () => {
@@ -146,7 +155,8 @@ test("L-shape splits main and wing members and counts commons on both", () => {
   assert.ok(main.length > 0 && wing.length > 0);
   const mainCommons = main.find((c) => c.name === "Common rafters");
   const wingCommons = wing.find((c) => c.name === "Wing common rafters");
-  assert.equal(mainCommons?.count, 11);
+  assert.equal(mainCommons?.count, 9);
+  assert.equal(main.find((c) => c.name === "Centering rafters")?.count, 4);
   assert.ok(wingCommons && wingCommons.count >= 8);
   assert.notEqual(mainCommons?.toBirdsmouthMm, wingCommons?.toBirdsmouthMm);
   const mainHips = main.find((c) => c.name === "Hip rafters");
@@ -178,7 +188,7 @@ test("T-shape keeps wing members in their own section even when spans match", ()
   assert.equal(wingCommons?.section, "wing");
   assert.equal(r.cuttingList.find((c) => c.name === "Wing hip rafters")?.count, 2);
   assert.equal(r.cuttingList.find((c) => c.name === "Hip rafters")?.count, 4);
-  assert.equal(r.commonCount, 6);
+  assert.equal(r.commonCount, 4);
 });
 
 test("L broken hip jacks are counted at the longer plate-to-hip length", () => {

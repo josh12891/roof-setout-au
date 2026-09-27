@@ -113,8 +113,9 @@ function bevels(pitchRad: number): Bevels {
 
 /**
  * Rafter centres from `startMm` through `endMm`, both ends included.
- * `floor(span / spacing) + 1` drops the far rafter whenever the run is not an
- * exact multiple of the centres — that undercounted commons and centering.
+ * The flat-roof plan uses this so a rafter still lands on the far plate when
+ * the length is not an exact multiple of the centres. The pitched cutting
+ * list does not — it follows the original Grok pair count.
  */
 export function rafterStations(startMm: number, endMm: number, spacingMm: number): number[] {
   if (spacingMm <= 0 || endMm < startMm + 8) return [];
@@ -292,30 +293,27 @@ export function calculateRoof(raw: RoofInputs): RoofResult {
     }
   }
 
-  // Commons sit at every centre from one end rafter to the other, both pitches.
-  // Hip-end stations are centering rafters, not commons. Where the wing takes
-  // the left pitch, that side is a wing member or a valley jack — the right
-  // pitch stays a full common.
-  let commonCount = 0;
-  let centeringMain = 0;
-  if (!pyramid) {
-    const yStart = leftHip ? halfSpanMm : 0;
-    const yEnd = rightHip ? lengthMm - halfSpanMm : lengthMm;
-    const stations = rafterStations(yStart, yEnd, spacingMm);
-    for (let i = 0; i < stations.length; i++) {
-      const y = stations[i];
-      const atLeftHip = leftHip && i === 0;
-      const atRightHip = rightHip && i === stations.length - 1;
-      if (atLeftHip || atRightHip) {
-        if (atLeftHip) centeringMain += jn?.flushNearEnd ? 1 : 2;
-        if (atRightHip && !atLeftHip) centeringMain += 2;
-        continue;
-      }
-      const inWing = jn != null && y >= jn.y0 - 4 && y <= jn.y1 + 4;
-      commonCount += inWing ? 1 : 2;
-    }
+  // Original Grok cutting list: pairs along the ridge, both pitches.
+  // floor(ridge / centres) + 1 includes both ends. Hip-end pairs are centering
+  // rafters, not commons. Where the wing takes the left pitch, that side is a
+  // wing member or a valley jack — drop it here; the right pitch stays a full
+  // common. A short closing bay is not an extra pair.
+  const ridgeSpanForRafters = pyramid ? 0 : ridgeLengthMm;
+  const commonPairs = ridgeSpanForRafters <= 0 ? 0 : Math.floor(ridgeSpanForRafters / spacingMm) + 1;
+  const hipEnds = pyramid ? 0 : (leftHip ? 1 : 0) + (rightHip ? 1 : 0);
+  const crownEndCount = hipEnds;
+  const centeringMain = hipEnds * 2;
+  let commonCount = commonPairs * 2;
+  if (centeringMain > 0) {
+    commonCount = Math.max(0, commonCount - centeringMain);
   }
-  const crownEndCount = pyramid ? 0 : (leftHip ? 1 : 0) + (rightHip ? 1 : 0);
+  if (jn && !pyramid) {
+    let skippedLeft = 0;
+    for (let y = yRidge0 + spacingMm; y < yRidge1 - 8; y += spacingMm) {
+      if (y >= jn.y0 - 4 && y <= jn.y1 + 4) skippedLeft += 1;
+    }
+    commonCount = Math.max(0, commonCount - skippedLeft);
+  }
   const centeringCount = centeringMain + wingCenteringCount;
   const mainVergeCount = (leftHip ? 0 : 2) + (rightHip ? 0 : 2);
   const wingVergeCount = raw.junction !== "none" && !wingHipped ? 2 : 0;
