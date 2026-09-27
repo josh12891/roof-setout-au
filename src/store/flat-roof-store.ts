@@ -4,8 +4,9 @@ import type { Member, SpacingMm } from "@/lib/roof/types";
 
 type FlatState = FlatRoofInputs & {
   setLength: (mm: number) => void;
-  setSpan: (mm: number) => void;
+  setWidth: (mm: number) => void;
   setOverhang: (mm: number) => void;
+  setPitch: (deg: number) => void;
   setSpacing: (mm: SpacingMm) => void;
   setRafter: (m: Member) => void;
   reset: () => void;
@@ -14,8 +15,9 @@ type FlatState = FlatRoofInputs & {
 export const useFlatRoofStore = create<FlatState>()((set) => ({
   ...DEFAULT_FLAT_INPUTS,
   setLength: (lengthMm) => set({ lengthMm }),
-  setSpan: (spanMm) => set({ spanMm }),
+  setWidth: (widthMm) => set({ widthMm }),
   setOverhang: (overhangMm) => set({ overhangMm }),
+  setPitch: (pitchDeg) => set({ pitchDeg }),
   setSpacing: (spacingMm) => set({ spacingMm }),
   setRafter: (rafter) => set({ rafter }),
   reset: () => set({ ...DEFAULT_FLAT_INPUTS }),
@@ -24,8 +26,9 @@ export const useFlatRoofStore = create<FlatState>()((set) => ({
 export function selectFlatInputs(s: FlatState): FlatRoofInputs {
   return {
     lengthMm: s.lengthMm,
-    spanMm: s.spanMm,
+    widthMm: s.widthMm,
     overhangMm: s.overhangMm,
+    pitchDeg: s.pitchDeg,
     spacingMm: s.spacingMm,
     rafter: s.rafter,
   };

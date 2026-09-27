@@ -21,7 +21,7 @@ export const PUBLIC_PRIVACY_URL =
  * Team freemium lock (this build):
  * Free forever — gable ends, common rafter, birdsmouth.
  * Pro — hip set-out, creeper schedule (common difference, cutting list,
- * material order), L/T junctions. Skillion is not in this build.
+ * material order), L/T junctions. Flat is one plane (pitch allowed) and stays free.
  */
 export type ToolId = "gable" | "common" | "hip" | "creeper" | "junction";
 

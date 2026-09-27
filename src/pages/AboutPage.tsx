@@ -21,7 +21,8 @@ export function AboutPage() {
         </CardHeader>
         <div className="space-y-3 text-sm text-muted">
           <p>
-            Choose flat or pitched first. Flat is rafters only. Pitched is one Roof Setout screen
+            Choose flat or pitched first. Flat is one plane — length, width and pitch, with the
+            rafter length calculated from the plan. Pitched is one Roof Setout screen
             for length, width, pitch, hip or gable ends, rafters, creepers and L/T junctions. No
             login, no cloud database, no ads. Calculations stay on this device.
           </p>
