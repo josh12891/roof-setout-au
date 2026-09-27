@@ -1,9 +1,11 @@
 import { useEffect, useMemo } from "react";
 import { Link } from "react-router";
+import { ArrowLeft } from "lucide-react";
 import { InputsPanel } from "@/components/roof/inputs-panel";
 import { ResultsPanel } from "@/components/roof/results-panel";
 import { RoofDiagram } from "@/components/roof/roof-diagram";
 import { useUnlock } from "@/components/unlock-provider";
+import { Button } from "@/components/ui/button";
 import { calculateRoof } from "@/lib/roof/geometry";
 import { selectInputs, useRoofStore } from "@/store/roof-store";
 import { useShallow } from "zustand/react/shallow";
@@ -23,6 +25,14 @@ export function RoofSetoutPage() {
       <header className="border-b border-border bg-surface">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-5 sm:flex-row sm:items-end sm:justify-between sm:px-6">
           <div>
+            <div className="mb-3">
+              <Button asChild variant="outline" size="sm" className="no-print">
+                <Link to="/" aria-label="Back to roof choice">
+                  <ArrowLeft />
+                  Back
+                </Link>
+              </Button>
+            </div>
             <p className="text-[11px] font-medium tracking-[0.2em] text-accent uppercase">
               Australian carpentry · Pitched roof
             </p>
@@ -50,9 +60,6 @@ export function RoofSetoutPage() {
                   Pro · {priceLabel}
                 </a>
               )}
-              <Link to="/" className="font-medium text-accent underline-offset-2 hover:underline">
-                Flat or pitched
-              </Link>
               <Link to="/about" className="font-medium text-accent underline-offset-2 hover:underline">
                 About
               </Link>

@@ -1,6 +1,6 @@
 # AU Roof Carpenter
 
-Offline roof set-out for Australian carpenters. The first screen is a **Flat roof** / **Pitched roof** choice. Flat is rafters only. Pitched opens one **Roof Setout** screen: length, width, pitch, hip or gable ends, rafters, hips, valleys, creepers and L/T junctions together.
+Offline roof set-out for Australian carpenters. The first screen is a **Flat roof** / **Pitched roof** choice. Flat is one plane (level or pitched) with rafter length calculated from the plan. Pitched opens one **Roof Setout** screen: length, width, pitch, hip or gable ends, rafters, hips, valleys, creepers and L/T junctions together.
 
 This is a **Capacitor + Vite + React + TypeScript SPA**. Web assets bundle into the native shells so set-out works **offline**. No login, no cloud database, no ads.
 
@@ -15,7 +15,7 @@ This is a **Capacitor + Vite + React + TypeScript SPA**. Web assets bundle into 
 | Privacy policy (Play + App Store Connect) | **https://josh12891.github.io/roof-setout-au/privacy.html** |
 | IAP product id | `roof_setout_pro_unlock` |
 | IAP price | **$39.99 AUD** one-time (placeholder — not a subscription) |
-| Store version | Marketing **1.0.4** (above the broken-hip infill build 1.0.3 / code 4). Android `versionCode` **5**. iOS `CFBundleVersion` **5**. |
+| Store version | Marketing **1.0.5** (single-plane flat roof: length, width, pitch, calculated rafter). Android `versionCode` **6**. iOS `CFBundleVersion` **6**. |
 
 Public surfaces use **Australian Dynamics** and **australiancomsnetwork@gmail.com** only — no personal names or personal emails.
 
@@ -25,7 +25,7 @@ The first screen asks **Flat roof** or **Pitched roof**. It is not the old five-
 
 | Choice | What you get |
 | --- | --- |
-| Flat roof | Level rafters only: length, span, 450/600 centres, eaves each side, member size, count and stock. A span-table note stays on the screen — the app does not size the timber. |
+| Flat roof | One plane that can carry pitch: building length and width, pitch, 450/600 centres, eaves each side, member size. Rafter length is calculated from the plan (not typed). 2D plan and isometric. A span-table note stays on the screen — the span is the plan width; the app does not size the timber. |
 | Pitched roof | The one Roof Setout workspace (inputs, roof diagram, results): hips, valleys, creepers, broken-hip jacks, L/T junctions, cutting list, freemium overlay. |
 
 | On the pitched screen | |
@@ -35,7 +35,7 @@ The first screen asks **Flat roof** or **Pitched roof**. It is not the old five-
 | Pro overlay — creeper | Common difference, hip jack table, cutting list |
 | Pro overlay — junction | Valley lengths and L/T counts |
 
-Each Pro section can be previewed once on the device. After that preview, the section stays behind the unlock overlay until `roof_setout_pro_unlock`. The flat path is not behind that overlay. Skillion is **not** in this build (not claimed, not gated).
+Each Pro section can be previewed once on the device. After that preview, the section stays behind the unlock overlay until `roof_setout_pro_unlock`. The flat path is not behind that overlay. Flat is one plane and may be pitched; it is not a hip roof and it is not a separate Pro tool.
 
 Pitched geometry is the Grok calculator in `src/lib/roof`. That screen is `src/pages/RoofSetoutPage.tsx` plus `src/components/roof`. Flat lengths are `src/lib/roof/flat.ts` on `src/pages/FlatRoofPage.tsx`. The choice is `src/pages/RoofChoicePage.tsx`.
 

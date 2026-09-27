@@ -28,11 +28,12 @@ export function RoofChoicePage() {
           className="rounded-[var(--radius-xl)] border border-border bg-surface p-6 shadow-sheet transition-[transform,border-color] duration-[var(--motion-quick)] ease-[var(--ease-out)] active:scale-[0.99] hover:border-accent"
         >
           <p className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
-            Rafters only
+            One plane
           </p>
           <h2 className="mt-1 text-2xl font-medium tracking-tight">Flat roof</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Length, span, spacing and eaves. No hips, valleys or creepers.
+            Length, width and pitch. Rafter length is calculated from the plan. No hips, valleys or
+            wings.
           </p>
         </Link>
         <Link
