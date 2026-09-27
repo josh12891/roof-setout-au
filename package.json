@@ -1,7 +1,7 @@
 {
   "name": "roof-setout-au",
   "private": true,
-  "version": "1.0.5",
+  "version": "1.0.6",
   "type": "module",
     "description": "AU Roof Carpenter — single-plane flat roof or pitched Roof Setout for Australian carpenters.",
   "scripts": {
