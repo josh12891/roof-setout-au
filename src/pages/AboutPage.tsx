@@ -8,7 +8,7 @@ import { TESTFLIGHT_SCREENSHOT_NOTE } from "@/lib/distribution";
 import { ANNUAL_PRODUCT_ID, PUBLIC_PRIVACY_URL, UNLOCK_PRODUCT_ID } from "@/lib/unlock";
 
 export function AboutPage() {
-  const { unlocked, complimentaryUnlock, restorePurchases, busy, priceLabels } = useUnlock();
+  const { unlocked, distributionChannel, restorePurchases, busy, priceLabels } = useUnlock();
 
   return (
     <AppShell title="About" subtitle="Metric set-out — rafters, hips, creepers" back>
@@ -46,14 +46,16 @@ export function AboutPage() {
           <CardHeader>
             <CardTitle>Pro unlocked</CardTitle>
             <CardDescription>
-              {complimentaryUnlock
-                ? TESTFLIGHT_SCREENSHOT_NOTE
-                : "Isometric, cutting list, and hip / valley / creeper / L·T set-out are open on this screen, offline."}
+              Isometric, cutting list, and hip / valley / creeper / L·T set-out are open on this
+              screen, offline.
             </CardDescription>
           </CardHeader>
         </Card>
       ) : (
-        <div className="mb-4">
+        <div className="mb-4 space-y-3">
+          {distributionChannel === "testflight" ? (
+            <p className="text-sm text-muted">{TESTFLIGHT_SCREENSHOT_NOTE}</p>
+          ) : null}
           <UnlockCta />
         </div>
       )}

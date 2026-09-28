@@ -100,12 +100,12 @@ Then `app-store-connect publish` uploads the IPA. It appears under TestFlight af
 
 ### Screenshots (TestFlight testers)
 
-The TestFlight binary **auto-unlocks** isometric, cutting list, hip / valley / creeper set-out, and L/T junctions when it detects a TestFlight install (`sandboxReceipt` and no `embedded.mobileprovision`). App Store customers still pay ($14.99 AUD/year or $39.99 AUD lifetime). This is for Lauren (`lozzpearson@gmail.com`) and other internal testers to capture Pro screenshots without buying — it does **not** unlock App Store production builds.
+Freemium applies on TestFlight the same way as the App Store. Detecting a TestFlight install (`sandboxReceipt` and no `embedded.mobileprovision`) does **not** unlock Pro. The paywall shows on isometric, cutting list, hip / valley / creeper set-out, and L/T junctions. Use a sandbox purchase or **Restore purchases** to test the real IAPs. App Store customers still pay ($14.99 AUD/year or $39.99 AUD lifetime). Lauren (`lozzpearson@gmail.com`) can record the locked screen, then Unlock Pro.
 
 1. Install the new TestFlight build.
-2. Open **Hip set-out**, **Creeper schedule**, and **L / T junctions** — Pro results already work. You do not need to tap Unlock or buy.
-3. About shows a TestFlight note and **Restore purchases** if you are checking the real sandbox IAPs (`roof_setout_pro_unlock` and `roof_setout_pro_annual`).
-4. App Store production builds are **not** unlocked this way. Complimentary unlock is not written to `roof-setout-au.unlock.v1`.
+2. Open **Hip set-out**, **Creeper schedule**, and **L / T junctions** — the paywall shows until a sandbox purchase or Restore.
+3. About shows a TestFlight note and **Restore purchases** for the real sandbox IAPs (`roof_setout_pro_unlock` and `roof_setout_pro_annual`).
+4. Complimentary unlock is off. A purchase still writes `roof-setout-au.unlock.v1`.
 
 To skip upload: set Application variable `PUBLISH_TESTFLIGHT` to `false` in the Codemagic UI.
 

@@ -15,7 +15,7 @@ This is a **Capacitor + Vite + React + TypeScript SPA**. Web assets bundle into 
 | Privacy policy (Play + App Store Connect) | **https://josh12891.github.io/roof-setout-au/privacy.html** |
 | IAP product ids | Lifetime `roof_setout_pro_unlock` · Annual `roof_setout_pro_annual` |
 | IAP prices | **$39.99 AUD** lifetime, or **$14.99 AUD/year** (no monthly). Either unlocks the same Pro set. |
-| Store version | Marketing **1.0.9**. Android `versionCode` **10**. iOS `CFBundleShortVersionString` **1.0.9**, `CFBundleVersion` **13** (Codemagic still replaces the iOS build number from the latest TestFlight build when App Store Connect credentials are present). |
+| Store version | Marketing **1.0.10**. Android `versionCode` **11**. iOS `CFBundleShortVersionString` **1.0.10**, `CFBundleVersion` **14** (Codemagic still replaces the iOS build number from the latest TestFlight build when App Store Connect credentials are present). |
 
 Public surfaces use **Australian Dynamics** and **australiancomsnetwork@gmail.com** only — no personal names or personal emails.
 
@@ -50,7 +50,7 @@ Either purchase unlocks the same Pro set. Restore queries both the in-app produc
 
 Native Android and iOS builds use **[@capgo/native-purchases](https://github.com/Cap-go/capacitor-native-purchases)** (Play Billing + StoreKit 2). A successful purchase or restore caches `localStorage` key `roof-setout-au.unlock.v1`.
 
-**TestFlight only:** complimentary Pro unlock for screenshots (sandbox receipt, no embedded provision). We do **not** bake a Codemagic compile flag into the IPA. App Store and Play customers stay on freemium. Lauren (`lozzpearson@gmail.com`) and other internal TestFlight testers can capture Pro screenshots without purchase; production App Store builds are **not** unlocked this way.
+**TestFlight:** freemium applies here too. Complimentary Pro unlock is off, including a sandbox receipt with no embedded provision. The paywall shows. Lauren (`lozzpearson@gmail.com`) and other testers use a sandbox purchase or Restore to test IAPs. We do **not** bake a Codemagic compile flag into the IPA. App Store and Play customers stay on the same freemium.
 
 Web/debug builds keep the **local unlock stub** (same flag, not billed).
 
@@ -164,7 +164,7 @@ Gradle release signing reads Codemagic `CM_*` env vars when present, otherwise `
 - [ ] Paste privacy URL into both stores
 - [ ] Codemagic `ios-app-store` + `tradies-toolbox-asc` → TestFlight IPA
 - [x] `APP_STORE_APPLE_ID` set to `6814817371`
-- [ ] Lauren (`lozzpearson@gmail.com`) on TestFlight for Pro screenshots (complimentary unlock — production stays freemium)
+- [ ] Lauren (`lozzpearson@gmail.com`) on TestFlight to record the locked → Unlock Pro paywall (complimentary unlock is off; sandbox purchase or Restore for IAPs)
 - [ ] Generate final icon/splash (`npm run assets` once brand mark is final)
 
 ## Roof Features checklist (Josh + Roof Features)
