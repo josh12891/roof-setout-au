@@ -48,7 +48,7 @@ describe("iOS distribution classification", () => {
     expect(classifyIosDistribution({})).toBe("unknown");
   });
 
-  it("never complimentary-unlocks Play, web, App Store, or Xcode builds", () => {
+  it("never complimentary-unlocks TestFlight, Play, web, App Store, or Xcode builds", () => {
     expect(classifyDistribution("android", null)).toBe("play");
     expect(classifyDistribution("web", null)).toBe("web");
     expect(grantsComplimentaryUnlock("play")).toBe(false);
@@ -56,18 +56,20 @@ describe("iOS distribution classification", () => {
     expect(grantsComplimentaryUnlock("app-store")).toBe(false);
     expect(grantsComplimentaryUnlock("ios-dev")).toBe(false);
     expect(grantsComplimentaryUnlock("unknown")).toBe(false);
-    expect(grantsComplimentaryUnlock("testflight")).toBe(true);
+    expect(grantsComplimentaryUnlock("testflight")).toBe(false);
   });
 });
 
-describe("complimentary TestFlight unlock", () => {
-  it("unlocks paid tools on TestFlight without a purchase flag", () => {
-    expect(effectiveUnlocked(false, "testflight")).toBe(true);
-    expect(canUseTool("hip", effectiveUnlocked(false, "testflight"))).toBe(true);
-    expect(canUseTool("creeper", effectiveUnlocked(false, "testflight"))).toBe(true);
-    expect(canUseTool("junction", effectiveUnlocked(false, "testflight"))).toBe(true);
-    expect(canUseTool("isometric", effectiveUnlocked(false, "testflight"))).toBe(true);
-    expect(canUseTool("cutting", effectiveUnlocked(false, "testflight"))).toBe(true);
+describe("TestFlight stays on freemium", () => {
+  it("keeps paid tools locked on TestFlight without a purchase flag", () => {
+    expect(effectiveUnlocked(false, "testflight")).toBe(false);
+    expect(canUseTool("hip", effectiveUnlocked(false, "testflight"))).toBe(false);
+    expect(canUseTool("creeper", effectiveUnlocked(false, "testflight"))).toBe(false);
+    expect(canUseTool("junction", effectiveUnlocked(false, "testflight"))).toBe(false);
+    expect(canUseTool("isometric", effectiveUnlocked(false, "testflight"))).toBe(false);
+    expect(canUseTool("cutting", effectiveUnlocked(false, "testflight"))).toBe(false);
+    expect(canUseTool("gable", effectiveUnlocked(false, "testflight"))).toBe(true);
+    expect(canUseTool("common", effectiveUnlocked(false, "testflight"))).toBe(true);
   });
 
   it("keeps App Store and Play freemium locked with no free preview", () => {
@@ -128,10 +130,13 @@ describe("complimentary TestFlight unlock", () => {
     });
   });
 
-  it("tells testers they do not need to buy, and keeps Restore available", () => {
-    expect(TESTFLIGHT_SCREENSHOT_NOTE).toMatch(/TestFlight tester build/i);
-    expect(TESTFLIGHT_SCREENSHOT_NOTE).toMatch(/do not need to buy/i);
-    expect(TESTFLIGHT_SCREENSHOT_NOTE).toMatch(/Restore purchases still works/i);
+  it("tells testers freemium applies and Restore is available", () => {
+    expect(TESTFLIGHT_SCREENSHOT_NOTE).toMatch(/TestFlight/i);
+    expect(TESTFLIGHT_SCREENSHOT_NOTE).toMatch(/freemium/i);
+    expect(TESTFLIGHT_SCREENSHOT_NOTE).toMatch(/paywall/i);
+    expect(TESTFLIGHT_SCREENSHOT_NOTE).toMatch(/sandbox purchase/i);
+    expect(TESTFLIGHT_SCREENSHOT_NOTE).toMatch(/Restore purchases/i);
+    expect(TESTFLIGHT_SCREENSHOT_NOTE).not.toMatch(/do not need to buy/i);
     expect(TESTFLIGHT_SCREENSHOT_NOTE).toMatch(/\$39\.99 AUD/);
   });
 });

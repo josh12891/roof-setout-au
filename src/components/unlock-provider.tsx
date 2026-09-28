@@ -57,7 +57,7 @@ type UnlockContextValue = {
   complimentaryUnlock: boolean;
   distributionChannel: DistributionChannel;
   canCalculateTool: (id: ToolId) => boolean;
-  /** Pro drawing or numbers. Locked until lifetime or annual purchase (or TestFlight). */
+  /** Pro drawing or numbers. Locked until lifetime or annual purchase. */
   isSectionOpen: (id: PaidToolId) => boolean;
   kind: BillingKind;
   priceLabels: PriceLabels;

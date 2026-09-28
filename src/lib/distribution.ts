@@ -1,6 +1,6 @@
 import { Capacitor, registerPlugin } from "@capacitor/core";
 
-/** Runtime install channel. Complimentary unlock is TestFlight only. */
+/** Runtime install channel. Complimentary unlock is off on every channel. */
 export type DistributionChannel = "testflight" | "app-store" | "ios-dev" | "play" | "web" | "unknown";
 
 export type NativeDistributionInspect = {
@@ -18,7 +18,7 @@ export type DistributionPluginApi = {
 
 /**
  * Native receipt / provisioning inspect. Implemented on iOS only.
- * Android and web never grant complimentary unlock.
+ * Complimentary unlock is off on every channel, including TestFlight.
  */
 export const Distribution = registerPlugin<DistributionPluginApi>("Distribution", {
   web: {
@@ -30,7 +30,7 @@ export const Distribution = registerPlugin<DistributionPluginApi>("Distribution"
 });
 
 export const TESTFLIGHT_SCREENSHOT_NOTE =
-  "TestFlight tester build — isometric, cutting list, hip, valley, creeper and L/T junctions are unlocked for App Store screenshots. You do not need to buy. Restore purchases still works if you are testing the real IAP. App Store customers still pay $14.99 AUD/year or $39.99 AUD lifetime.";
+  "TestFlight uses the same freemium as the App Store. The paywall shows on isometric, cutting list, hip, valley, creeper and L/T junctions until you unlock Pro. Use a sandbox purchase or Restore purchases to test the real IAPs ($14.99 AUD/year or $39.99 AUD lifetime).";
 
 /**
  * TestFlight (and only TestFlight-shaped App Store distribution):
@@ -62,9 +62,9 @@ export function classifyDistribution(
   return classifyIosDistribution(native);
 }
 
-/** Complimentary unlock never applies to Play or App Store customers. */
-export function grantsComplimentaryUnlock(channel: DistributionChannel): boolean {
-  return channel === "testflight";
+/** Complimentary unlock is off for every channel, including TestFlight. */
+export function grantsComplimentaryUnlock(_channel: DistributionChannel): boolean {
+  return false;
 }
 
 export function effectiveUnlocked(
