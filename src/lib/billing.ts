@@ -164,6 +164,38 @@ export function catalogPriceLabels(): PriceLabels {
   };
 }
 
+/**
+ * Currencies other than the locked AUD catalog. A bare "$" is not enough:
+ * Australian storefronts often format AUD as "$14.99".
+ */
+const NON_AUD_CURRENCY =
+  /\b(?:USD|EUR|GBP|CAD|NZD|JPY|CNY|INR|SGD|HKD|CHF|KRW)\b|US\$|CA\$|C\$|NZ\$|HK\$|S\$|€|£|¥|₩/i;
+
+function firstPriceAmount(priceString: string): number | null {
+  const normalized = priceString.replace(/,(?=\d{3}(?:\D|$))/g, "");
+  const match = normalized.match(/(\d+(?:\.\d+)?)/);
+  if (!match) return null;
+  const value = Number(match[1]);
+  return Number.isFinite(value) ? value : null;
+}
+
+/**
+ * Label for a custom paywall button. The App Store / Play sheet stays
+ * authoritative. The button keeps `priceString` only when that string is the
+ * locked catalog AUD amount (`$14.99` annual, `$39.99` lifetime). A missing
+ * string, another currency, or a non-AUD fallback such as "$9.99" / "$24.99"
+ * uses `PRO_PLANS` (`$14.99 AUD/year`, `$39.99 AUD`).
+ */
+export function paywallPriceLabel(plan: ProPlan, priceString?: string | null): string {
+  const catalog = PRO_PLANS[plan].priceLabel;
+  const store = priceString?.trim() ?? "";
+  if (!store || NON_AUD_CURRENCY.test(store)) return catalog;
+  const amount = firstPriceAmount(store);
+  if (amount == null) return catalog;
+  if (Math.abs(amount - PRO_PLANS[plan].priceAud) >= 0.001) return catalog;
+  return store;
+}
+
 function friendlyPurchaseMessage(error: unknown): string {
   const code = errorCode(error).toUpperCase().replace(/-/g, "_");
   const message = errorMessage(error).toLowerCase();
@@ -343,8 +375,7 @@ export function createUnlockBilling(
             productIdentifier: spec.id,
             productType: spec.type,
           });
-          const label = product.priceString?.trim();
-          if (label) labels[plan] = label;
+          labels[plan] = paywallPriceLabel(plan, product.priceString);
         } catch {
           // Keep the catalog price for this plan.
         }

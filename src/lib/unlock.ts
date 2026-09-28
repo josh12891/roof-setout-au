@@ -57,6 +57,13 @@ export const PUBLIC_PRIVACY_URL =
   "https://josh12891.github.io/roof-setout-au/privacy.html";
 
 /**
+ * Apple standard EULA. No custom Terms of Use URL is shipped.
+ * Auto-renewable annual purchases link here from the paywall.
+ */
+export const PUBLIC_TERMS_URL =
+  "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
+
+/**
  * Locked freemium:
  * Free — flat roof numbers, and pitched gable numbers (commons, birdsmouth, pitch).
  * Pro (either IAP) — isometric, cutting list, hip / valley / creeper / L·T set-out.
