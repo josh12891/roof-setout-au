@@ -4,6 +4,7 @@ import {
   createUnlockBilling,
   isAlreadyOwnedPurchase,
   isUserCancelledPurchase,
+  paywallPriceLabel,
   purchasesGrantUnlock,
   shouldUseLocalUnlockStub,
   transactionGrantsUnlock,
@@ -287,7 +288,7 @@ describe("unlock billing adapter", () => {
     expect(ownedResult.message).toMatch(/restored/i);
   });
 
-  it("uses the store price string when the product is listed", async () => {
+  it("keeps the store price string when it is the locked AUD amount", async () => {
     const billing = createUnlockBilling({
       client: fakeClient({
         getProduct: async (options) => ({
@@ -307,6 +308,35 @@ describe("unlock billing adapter", () => {
     expect(billingFootnote("store", "android")).toMatch(/Google Play/i);
     expect(billingFootnote("store", "ios")).toMatch(/App Store/i);
     expect(billingFootnote("store", "android")).toMatch(/annual/i);
+  });
+
+  it("uses catalog AUD labels when the store price is missing or a non-AUD fallback", async () => {
+    expect(paywallPriceLabel("annual", "$9.99")).toBe(ANNUAL_PRICE_LABEL);
+    expect(paywallPriceLabel("lifetime", "$24.99")).toBe(UNLOCK_PRICE_LABEL);
+    expect(paywallPriceLabel("annual", "  ")).toBe(ANNUAL_PRICE_LABEL);
+    expect(paywallPriceLabel("annual", null)).toBe(ANNUAL_PRICE_LABEL);
+    expect(paywallPriceLabel("annual", "$14.99 USD")).toBe(ANNUAL_PRICE_LABEL);
+    expect(paywallPriceLabel("lifetime", "CA$39.99")).toBe(UNLOCK_PRICE_LABEL);
+    expect(paywallPriceLabel("annual", "$14.99")).toBe("$14.99");
+    expect(paywallPriceLabel("annual", "A$14.99")).toBe("A$14.99");
+    expect(paywallPriceLabel("lifetime", "$39.99")).toBe("$39.99");
+
+    const billing = createUnlockBilling({
+      client: fakeClient({
+        getProduct: async (options) => ({
+          product: {
+            priceString:
+              options.productIdentifier === ANNUAL_PRODUCT_ID ? "$9.99" : "$24.99",
+          },
+        }),
+      }),
+      platform: { isNative: true, isDev: false, name: "ios" },
+      storage: memoryStorage(),
+    });
+    expect(await billing.getPriceLabels()).toEqual({
+      lifetime: UNLOCK_PRICE_LABEL,
+      annual: ANNUAL_PRICE_LABEL,
+    });
   });
 
   it("purchases the annual subscription and restores either product", async () => {

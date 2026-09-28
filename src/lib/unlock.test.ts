@@ -15,6 +15,8 @@ import {
   readUnlockedFlag,
   restoreUnlockFlag,
   toolRequiresUnlock,
+  PUBLIC_PRIVACY_URL,
+  PUBLIC_TERMS_URL,
   UNLOCK_PRICE_AUD,
   UNLOCK_PRICE_LABEL,
   UNLOCK_PRODUCT_ID,
@@ -69,6 +71,12 @@ describe("unlock gate", () => {
       planIdentifier: ANNUAL_BASE_PLAN_ID,
     });
     expect(ANNUAL_BASE_PLAN_ID).toBe("annual");
+    expect(PUBLIC_PRIVACY_URL).toBe(
+      "https://josh12891.github.io/roof-setout-au/privacy.html",
+    );
+    expect(PUBLIC_TERMS_URL).toBe(
+      "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/",
+    );
 
     for (const id of PAID_TOOL_IDS) {
       expect(toolRequiresUnlock(id)).toBe(true);

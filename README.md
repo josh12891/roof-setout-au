@@ -15,7 +15,7 @@ This is a **Capacitor + Vite + React + TypeScript SPA**. Web assets bundle into 
 | Privacy policy (Play + App Store Connect) | **https://josh12891.github.io/roof-setout-au/privacy.html** |
 | IAP product ids | Lifetime `roof_setout_pro_unlock` · Annual `roof_setout_pro_annual` |
 | IAP prices | **$39.99 AUD** lifetime, or **$14.99 AUD/year** (no monthly). Either unlocks the same Pro set. |
-| Store version | Marketing **1.0.10**. Android `versionCode` **11**. iOS `CFBundleShortVersionString` **1.0.10**, `CFBundleVersion` **14** (Codemagic still replaces the iOS build number from the latest TestFlight build when App Store Connect credentials are present). |
+| Store version | Marketing **1.0.11**. Android `versionCode` **12**. iOS `CFBundleShortVersionString` **1.0.11**, `CFBundleVersion` **15** (Codemagic still replaces the iOS build number from the latest TestFlight build when App Store Connect credentials are present). |
 
 Public surfaces use **Australian Dynamics** and **australiancomsnetwork@gmail.com** only — no personal names or personal emails.
 
